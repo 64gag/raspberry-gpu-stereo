@@ -1,6 +1,6 @@
 \subsection{Actividades}
 
-\subsubsection{PCB comunicación entre cámara y raspberry pi}
+\subsubsection{PCB comunicación entre cámara y raspberry pi.}
 Durante el primer día de trabajo se hizo un bill of materials (Tabla \ref{tab_bompic}) para hacer una tarjeta de circuito impreso que conecte una cámara OV7670 con el raspberry, el objetivo siendo que el Carrita tenga capacidades de visión computarizada. La diferencia con la de la UDEM es que Varrier externó que le gustaría recibir en el raspberry:
 \begin{itemize}
 	\item Máxima resolución (640x480).
@@ -23,7 +23,7 @@ Observaciones sobre el bill of materials:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Alternativa a Microchip}
+\subsubsection{Alternativa a Microchip.}
 Debido a lo costoso en dinero (componentes) y tiempo (diseño y armado) que resultó ser el diseño de un PCB para establecer la comunicación con las cámaras procedí a buscar una alternativa que ofrecerle a Varrier. La mejor alternativa fue utilizar un STM32, porque:
 \begin{itemize}
 	\item Tienen Digital Camera Module Interface (DCMI).
@@ -38,7 +38,7 @@ Se investigó para validar que las tarjetas de evaluación pudieran hacer la com
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Estudio e implementación en C de transformada de Hough}
+\subsubsection{Estudio e implementación en C de transformada de Hough.}
 El código implementado en la UDEM para detectar la línea que se está siguiendo utiliza OpenCV, una librería que tiene una gran variedad de algoritmos para hacer visión computarizada. Es un objetivo del proyecto que el Carrita pueda medir la distancia que hay hacia un vehículo que esté enfrente y esta función no estaba implementada.
 
 Antes de comenzar la implementación decidí deshacerme de la dependencia de OpenCV y desarrollar código en C para una transformada de Hough basado en los siguientes hechos:
@@ -85,6 +85,6 @@ Se utilizó SDL para dibujar en pantalla (no es necesario, pero sirve para ver y
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Revisión bibliográfica de aplicaciones de la transformada de Hough.}
+\subsubsection[Revisión bibliográfica transformada de Hough.]{Revisión bibliográfica de aplicaciones de la transformada de Hough.}
 Se han descargado 25 artículos relevantes al tema en los que se están observando aplicaciones de extracción de características usando la transformada de Hough. Al seleccionarlos se observó que hablan de las limitantes de la transformada, pequeñas modificaciones para resolverlas, así como propuestas y resultados experimentales.
 
