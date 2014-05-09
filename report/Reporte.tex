@@ -1,0 +1,84 @@
+\documentclass[paper=A4, fontsize=11pt, titlepage]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc} 
+\usepackage{fourier} 
+\usepackage[spanish,mexico]{babel}
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amsthm} 
+\usepackage{fancyhdr} 
+\usepackage{titlesec}
+
+\pagestyle{fancy}
+\renewcommand{\sectionmark}[1]{ \markboth{#1}{} }
+\setlength{\headheight}{24pt}
+\fancyhf[HL]{\raisebox{-0.4\height}{\includegraphics[height=24pt]{fig/udemheader}}}
+\fancyhead[HC]{\leftmark}
+\fancyhf[HR]{\raisebox{-0.4\height}{\includegraphics[height=24pt]{fig/esisarheader}}}
+\fancyhf[FC]{\thepage}
+
+\titleformat{\section}
+{\normalfont\Large\bfseries}{\thesection}{1em}{}
+[\normalfont\small\itshape\raggedleft\sectionpostamble\global\let\sectionpostamble\relax]
+
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
+\setlength\parindent{0pt}
+
+\addto\captionsspanishmexico{
+	\renewcommand{\contentsname}{Índice}
+	\renewcommand{\listfigurename}{Lista de figuras}
+	\renewcommand{\listtablename}{Lista de tablas}
+}
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 
+\newcommand*{\sectionpostamble}{}
+\newcommand*{\fromto}[1]{\def\sectionpostamble{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{
+\includegraphics[height=0.35\textwidth]{fig/udemlogo}\\
+\normalfont \normalsize 
+\textsc{Universidad de Monterrey} \\ [25pt] 
+\horrule{1pt} \\[0.4cm]
+\huge Reporte de actividades \\ 
+\small Proyecto de Evaluación Final \\
+\horrule{2pt} \\[0.5cm]
+}
+\author{Pedro Aguiar}
+\date{\normalsize 2/Mayo/2014}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\clearpage
+\listoffigures
+\listoftables
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\fromto{23 de Abril - 2 de Mayo}
+\section{Minuta 01}
+
+\input{M01/administrativo.tex}
+\input{M01/actividades.tex}
+\input{M01/resultados.tex}
+\input{M01/pendientes.tex}
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\fromto{5 de Mayo - 9 de Mayo}
+\section{Minuta 02}
+
+\subsection{Actividades}
+\subsection{Resultados}
+\subsection{Pendientes}
+
+
+\end{document}

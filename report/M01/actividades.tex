@@ -1,0 +1,90 @@
+\subsection{Actividades}
+
+\subsubsection{PCB comunicación entre cámara y raspberry pi}
+Durante el primer día de trabajo se hizo un bill of materials (Tabla \ref{tab_bompic}) para hacer una tarjeta de circuito impreso que conecte una cámara OV7670 con el raspberry, el objetivo siendo que el Carrita tenga capacidades de visión computarizada. La diferencia con la de la UDEM es que Varrier externó que le gustaría recibir en el raspberry:
+\begin{itemize}
+	\item Máxima resolución (640x480).
+	\item Máximo framerate (30fps).
+	\item Imagen a color.
+\end{itemize}
+\input{tab/bompic.tex}
+Observaciones sobre el bill of materials:
+\begin{itemize}
+	\item Costo elevado
+	\begin{itemize}
+		\item 40.74 euros de componentes de una placa.
+		\item 33.99 euros para el programador.
+	\end{itemize}
+	\item El proveedor impone cantidades mínimas de componentes.
+	\item No está considerado el costo de mandar a hacer la placa.
+	\item No se podría utilizar el microcontrolador de la UDEM porque no estaban considerados los bits para el color.
+	\item Por lo tanto, el PCB tendría que ser diseñado completamente desde cero con la sensación (personal) de menos herramientas y proveedores menos accesibles.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Alternativa a Microchip}
+Debido a lo costoso en dinero (componentes) y tiempo (diseño y armado) que resultó ser el diseño de un PCB para establecer la comunicación con las cámaras procedí a buscar una alternativa que ofrecerle a Varrier. La mejor alternativa fue utilizar un STM32, porque:
+\begin{itemize}
+	\item Tienen Digital Camera Module Interface (DCMI).
+	\item Tienen Direct Memory Access (DMA).
+	\item Combinando DCMI+DMA se pueden guardar frames en memoria usando sólo hardware (el procesador queda libre para usarlo para otras aplicaciones).
+	\item Hay tarjetas de evaluación de bajo costo (una de 12 y otra de 21 euros).
+	\item Programación por USB.
+	\item Varrier tiene experiencia y confianza en estos dispositivos.
+\end{itemize}
+
+Se investigó para validar que las tarjetas de evaluación pudieran hacer la comunicación con la cámara. También se revisó si se podrían utilizar los sensores y la pantalla LCD de la tarjeta (si no interferían con los pines que se necesitaban para la cámara). Se tomó la decisión de comprar dos tarjetas 32F429IDISCOVERY.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Estudio e implementación en C de transformada de Hough}
+El código implementado en la UDEM para detectar la línea que se está siguiendo utiliza OpenCV, una librería que tiene una gran variedad de algoritmos para hacer visión computarizada. Es un objetivo del proyecto que el Carrita pueda medir la distancia que hay hacia un vehículo que esté enfrente y esta función no estaba implementada.
+
+Antes de comenzar la implementación decidí deshacerme de la dependencia de OpenCV y desarrollar código en C para una transformada de Hough basado en los siguientes hechos:
+
+\begin{itemize}
+	\item OpenCV es una librería muy generalizada con una gran cantidad de funciones (la descarga de la versión estable actual, 2.4.9 es de más de 87MB para Linux).
+	\item Para la detección de línea sólo se estaban usando dos "funciones complejas" de OpenCV.
+	\begin{itemize}
+		\item Canny edge detector.
+		\item Hough transform.
+		\item Seguramente menos del 0.5\% de los 87MB.
+	\end{itemize}
+	\item La transformada de Hough de OpenCV no puede usarse para detectar al vehículo de enfrente (sólo se detectan líneas rectas y círculos).
+	\item OpenCV hace el cálculo completo de la transformada en cada frame. Nuestra aplicación puede aprovechar el hecho de saber que es un video para no realizar el cálculo completo en cada frame y buscar alrededor del punto conocido del cálculo anterior.
+\end{itemize}
+
+Además tenemos las ventajas típicas de programar una versión independiente de librerías:
+\begin{itemize}
+	\item Conocimiento profundo de la transformada (funcionalidad menos abstracta).
+	\item Adaptación específica a la necesidad (minimalista, rápida, a la medida).
+	\item Libertad en funcionalidad, optimizaciones e interfaces.
+\end{itemize}
+
+En algún momento se iba a llegar al límite de la capacidad del raspberry utilizando OpenCV y para empujar ese límite se tendría que bajar a una solución específica sin uso de librerías generalizadas.
+
+Para implementar en C la transformada de Hough se llevaron a cabo las siguientes tareas:
+
+\begin{itemize}
+	\item Estudio de la teoría detrás de la transformada de Hough.
+	\item Búsqueda y comparación de código existente para la transformada.
+	\item Adaptar una versión a usar sólo C (sustituir librerías).
+	\item Implementar optimizaciones
+	\begin{itemize}
+		\item (Ab)uso del preprocesador (para reducir bifurcaciones). 
+		\item Aritmética de punto fijo.
+		\item Tablas de funciones trigonométricas.
+		\item Memoria asignada estáticamente.
+		\item Region de interés.
+		\item Reducción de grados de libertad.
+	\end{itemize}
+\end{itemize}
+
+Se utilizó SDL para dibujar en pantalla (no es necesario, pero sirve para ver y comprobar resultados) y se adaptó fast-edge (http://goo.gl/ARWJZj), un proyecto encontrado en internet, para hacer detección de bordes.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Revisión bibliográfica de aplicaciones de la transformada de Hough.}
+Se han descargado 25 artículos relevantes al tema en los que se están observando aplicaciones de extracción de características usando la transformada de Hough. Al seleccionarlos se observó que hablan de las limitantes de la transformada, pequeñas modificaciones para resolverlas, así como propuestas y resultados experimentales.
+
