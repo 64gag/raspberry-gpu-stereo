@@ -3,11 +3,12 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc} 
 \usepackage{fourier} 
-\usepackage[spanish,mexico]{babel}
+\usepackage[english]{babel}
 \usepackage{graphicx}
 \usepackage{amsmath,amsfonts,amsthm} 
 \usepackage{fancyhdr} 
 \usepackage{titlesec}
+\usepackage[super]{nth}
 
 \pagestyle{fancy}
 \renewcommand{\sectionmark}[1]{ \markboth{#1}{} }
@@ -27,33 +28,40 @@
 
 \setlength\parindent{0pt}
 
-\addto\captionsspanishmexico{
-	\renewcommand{\contentsname}{Índice}
-	\renewcommand{\listfigurename}{Lista de figuras}
-	\renewcommand{\listtablename}{Lista de tablas}
-}
-
 \newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 
 \newcommand*{\sectionpostamble}{}
 \newcommand*{\fromto}[1]{\def\sectionpostamble{#1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\title{
-\includegraphics[height=0.35\textwidth]{fig/udemlogo}\\
-\normalfont \normalsize 
-\textsc{Universidad de Monterrey} \\ [25pt] 
-\horrule{1pt} \\[0.4cm]
-\huge Reporte de actividades \\ 
-\small Proyecto de Evaluación Final \\
-\horrule{2pt} \\[0.5cm]
-}
-\author{Pedro Aguiar}
-\date{\normalsize 2/Mayo/2014}
-
 \begin{document}
 
-\maketitle
+  \begin{titlepage}
+%    \vspace*{\fill}
+    \begin{center}
+	\includegraphics[height=0.35\textwidth]{fig/udemlogo}\\
+	\vspace{2mm}
+	\huge UNIVERSIDAD DE MONTERREY\\
+	\vspace{1mm}
+	\Large División de Ingeniería y Tecnologías\\
+	\vspace{1mm}
+	\large Departamento de Inegniería\\
+	\vspace{10mm}
+	\horrule{1pt} \\[0.4cm]
+	\Huge ACTIVITIES REPORT\\ 
+	\large Final Evaluation Project\\
+	\horrule{2pt} \\[0.5cm]
+	\vspace{10mm}
+	\Large\raggedright Dr. Jorge de Jesús Lozoya Santos\\
+	\normalsize\raggedright Project Assessor\\
+	\vspace{10mm}
+	\Large\raggedleft Pedro Aguiar\\
+	\normalsize\raggedleft Mechatronics Engineering Student\\
+	\vspace{20mm}
+	\Large\centering May \nth{16}, 2014.\\
+    \end{center}
+%    \vspace*{\fill}
+  \end{titlepage}
+
 \tableofcontents
 \clearpage
 \listoffigures
@@ -62,8 +70,8 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\fromto{23 de Abril - 2 de Mayo}
-\section{MINUTA 01}
+\fromto{April 23 - Mayo 2}
+\section{MEMORANDUM 01}
 
 \input{M01/administrativo.tex}
 \input{M01/actividades.tex}
@@ -73,17 +81,43 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\fromto{5 de Mayo - 9 de Mayo}
-\section{MINUTA 02}
+\fromto{May 5 - May 9}
+\section{MEMORANDUM 02}
 
-\subsection{Actividades}
-\subsection{Resultados}
-\subsection{Pendientes}
+\input{M02/actividades.tex}
+\input{M02/resultados.tex}
+\input{M02/pendientes.tex}
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\fromto{May 12 - May 16}
+\section{MEMORANDUM 03}
+
+\input{M03/actividades.tex}
+\input{M03/resultados.tex}
+\input{M03/pendientes.tex}
 \clearpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{APÉNDICE}
+\section{APPENDIX}
 \subsection{Gantt A}
 \input{fig/ganttA.tex}
+\subsection{Camera mount mechanism drawings}
+\input{fig/cammountp1.tex}
+\input{fig/cammountp2.tex}
+\input{fig/cammountp3.tex}
+\clearpage
+
+\begin{thebibliography}{9}
+ \bibitem{cummings}
+	Chris Cummings,
+	\emph{Gpu accelerated image processing on raspberry pi}. http://youtu.be/yQZISXIFjaQ
+
+ \bibitem{dubska}
+	Markéta Dubská, Adam Herout,
+	\emph{Real-Time Detection of Lines using Parallel Coordinates and OpenGL}. 
+
+\end{thebibliography}
 
 \end{document}
