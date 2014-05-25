@@ -7,7 +7,7 @@
 #define BUILDFLAGS_H_
 
  #define DEBUG		0
- #define SANITY_CHECKS	1
+ #define SANITY_CHECKS	0
  #define STATIC_ALLOC	1
  #define PRINT_TIME	1
  #define TRIG_LOOKUP	1
@@ -19,9 +19,11 @@
  #define LINES_FACTOR	2
  #define LINES_INITIAL	20
 
- #define WAIT_KEY	1
- #define DRAW_ACCUM	1
- #define DRAW_OUTPUT	1
+ #define ITERATIONS	3000
+
+ #define WAIT_KEY	0
+ #define DRAW_ACCUM	0
+ #define DRAW_OUTPUT	0
  #define LOAD_BMP_SDL	1
  #define SDL_USED	DRAW_ACCUM || DRAW_OUTPUT || LOAD_BMP_SDL
 

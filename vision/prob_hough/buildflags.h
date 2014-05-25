@@ -17,6 +17,7 @@
  #define IMG_H		480
  #define LINES_FACTOR	3
  #define LINES_INITIAL	20
+
  #define ITERATIONS	3000
 
  #define WAIT_KEY	0

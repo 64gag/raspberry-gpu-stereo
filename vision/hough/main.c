@@ -64,22 +64,24 @@ int main( int argc, char* args[] )
 			}
 		}
 	#else
-	
+
 	#endif
 
-		gaussian_noise_reduce(&in, &gauss);	/* Pre-edge detection: some blurring */
-		canny_edge_detect(&gauss, &out);	/* Actual edge detection */
+
 		init_hough(&HT);
 
 	#if PRINT_TIME
 	clock_t start = clock();
 	#endif
-		int i;
-		for(i=0; i<300; i++){
-			init_hough(&HT);
-			hough_transform(&out, &HT); /* Transform */
-			hough_getlines(HT.max/3, &HT); /* Analyze the accumulator, fill the detected lines */
-		}
+
+	unsigned int i;
+	for(i=0; i<ITERATIONS; i++){
+		gaussian_noise_reduce(&in, &gauss);	/* Pre-edge detection: some blurring */
+		canny_edge_detect(&gauss, &out);	/* Actual edge detection */
+		init_hough(&HT);
+		hough_transform(&out, &HT); /* Transform */
+		hough_getlines(HT.max/3, &HT); /* Analyze the accumulator, fill the detected lines */
+	}
 
 	#if PRINT_TIME
 	printf("Hough transform - time elapsed: %f\n", ((double)clock() - start) / CLOCKS_PER_SEC);

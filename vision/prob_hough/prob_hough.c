@@ -243,7 +243,7 @@ inline void init_hough(phough_t *hs)
 	hs->threshold = 50;
 	hs->theta = 180;
 	hs->line_length = 50;
-	hs->line_gap = 10;
+	hs->line_gap = 5;
 	hs->line_max = 2000;
 
 
