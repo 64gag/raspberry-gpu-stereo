@@ -10,6 +10,8 @@
 \usepackage{titlesec}
 \usepackage{multirow}
 \usepackage[super]{nth}
+\usepackage[pdftex,pdfpagelabels,bookmarks,hyperindex,hyperfigures,hidelinks,linktoc=all]{hyperref}
+\usepackage[all]{hypcap}
 
 \pagestyle{fancy}
 \renewcommand{\sectionmark}[1]{ \markboth{#1}{} }
@@ -37,7 +39,6 @@
 \begin{document}
 \pagenumbering{roman}
   \begin{titlepage}
-%    \vspace*{\fill}
     \begin{center}
 	\includegraphics[height=0.35\textwidth]{fig/udemlogo}\\
 	\vspace{2mm}
@@ -60,7 +61,6 @@
 	\vspace{20mm}
 	\Large\centering May \nth{16}, 2014.\\
     \end{center}
-%    \vspace*{\fill}
   \end{titlepage}
 
 \tableofcontents
