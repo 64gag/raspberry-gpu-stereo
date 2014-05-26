@@ -1,90 +1,91 @@
-\subsection{Actividades}
+\subsection{Activities}
 
-\subsubsection{PCB comunicación entre cámara y raspberry pi.}
-Durante el primer día de trabajo se hizo un bill of materials (Tabla \ref{tab_bompic}) para hacer una tarjeta de circuito impreso que conecte una cámara OV7670 con el raspberry, el objetivo siendo que el Carrita tenga capacidades de visión computarizada. La diferencia con la de la UDEM es que Varrier externó que le gustaría recibir en el raspberry:
+\subsubsection{Interface PCB between the camera and the raspberry pi.}
+During the first day a bill of materials for a PCB was done (Table \ref{tab_bompic}). The PCB had to connect the OV7670 camera and the raspberry with the objective of adding computer vision capabilities to Carrita. The difference with UDEM's approach is that this must send to the raspberry:
 \begin{itemize}
-	\item Máxima resolución (640x480).
-	\item Máximo framerate (30fps).
-	\item Imagen a color.
+	\item Maximum resolution (640x480).
+	\item Maximum framerate (30fps).
+	\item Color image.
 \end{itemize}
 \input{tab/bompic.tex}
-Observaciones sobre el bill of materials:
+It can be seen from the bill of materials (Table \ref{tab_bompic}):
 \begin{itemize}
-	\item Costo elevado
+	\item It is expensive.
 	\begin{itemize}
-		\item 40.74 euros de componentes de una placa.
-		\item 33.99 euros para el programador.
+		\item 40.74 euros of the components of one PCB.
+		\item 33.99 euros of the programmer.
 	\end{itemize}
-	\item El proveedor impone cantidades mínimas de componentes.
-	\item No está considerado el costo de mandar a hacer la placa.
-	\item No se podría utilizar el microcontrolador de la UDEM porque no estaban considerados los bits para el color.
-	\item Por lo tanto, el PCB tendría que ser diseñado completamente desde cero con la sensación (personal) de menos herramientas y proveedores menos accesibles.
+	\item There are minimum order quantities.
+	\item PCB manufacturing is not included.
+	\item UDEM's microcontroller could not be used.
+	\item The PCB would have to be designed from scratch with less tools and materials available.
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Alternativa a Microchip.}
-Debido a lo costoso en dinero (componentes) y tiempo (diseño y armado) que resultó ser el diseño de un PCB para establecer la comunicación con las cámaras procedí a buscar una alternativa que ofrecerle a Varrier. La mejor alternativa fue utilizar un STM32, porque:
+\subsubsection{Microchip alternative.}
+Due to the expensiveness in both money (components) and time (design and manufacturing) that the design of a new communication PCB was found to be I proceded to seek for an alternative. The best alternative found was to use an STM32 microcontroller, because:
+
 \begin{itemize}
-	\item Tienen Digital Camera Module Interface (DCMI).
-	\item Tienen Direct Memory Access (DMA).
-	\item Combinando DCMI+DMA se pueden guardar frames en memoria usando sólo hardware (el procesador queda libre para usarlo para otras aplicaciones).
-	\item Hay tarjetas de evaluación de bajo costo (una de 12 y otra de 21 euros).
-	\item Programación por USB.
-	\item Varrier tiene experiencia y confianza en estos dispositivos.
+	\item It has a Digital Camera Module Interface (DCMI).
+	\item It features Direct Memory Access (DMA).
+	\item Using DCMI+DMA camera frames can be processed using hardware only (freeing the processor for other applications).
+	\item Cheap evaluation boards exist (there is one at 12 euros and another at 21).
+	\item Programming is done through standard USB cable.
+	\item Varrier has experience and confidence in these brand of microcontrollers.
 \end{itemize}
 
-Se investigó para validar que las tarjetas de evaluación pudieran hacer la comunicación con la cámara. También se revisó si se podrían utilizar los sensores y la pantalla LCD de la tarjeta (si no interferían con los pines que se necesitaban para la cámara). Se tomó la decisión de comprar dos tarjetas 32F429IDISCOVERY.
+Research was done to validate the evaluation boards could do the communication with the camera. Also, research about whether the sensors and the LCD screen could be used simultaneously with the camera (or if their pins interfered). The final decision was to buy two 32F429IDISCOVERY.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Estudio e implementación en C de transformada de Hough.}
-El código implementado en la UDEM para detectar la línea que se está siguiendo utiliza OpenCV, una librería que tiene una gran variedad de algoritmos para hacer visión computarizada. Es un objetivo del proyecto que el Carrita pueda medir la distancia que hay hacia un vehículo que esté enfrente y esta función no estaba implementada.
+\subsubsection{Study and C implementation of the Hough transform.}
+Line detection code implemented at UDEM uses OpenCV, a library with many computer vision algorithms. It is an objective to give Carrita a way to measure distance to a vehicle in front of it and that function has not been implemented.
 
-Antes de comenzar la implementación decidí deshacerme de la dependencia de OpenCV y desarrollar código en C para una transformada de Hough basado en los siguientes hechos:
+Before starting the implementation I decided to remove the dependency on OpenCV and develop a C code version of the Hough transform based on the following facts:
 
 \begin{itemize}
-	\item OpenCV es una librería muy generalizada con una gran cantidad de funciones (la descarga de la versión estable actual, 2.4.9 es de más de 87MB para Linux).
-	\item Para la detección de línea sólo se estaban usando dos "funciones complejas" de OpenCV.
+	\item OpenCV is a general computer vision library of many functions (the download of the current stable Linux version, 2.4.9, is 87MB).
+	\item Only two "complex" functions were used for line detection.
 	\begin{itemize}
 		\item Canny edge detector.
 		\item Hough transform.
-		\item Seguramente menos del 0.5\% de los 87MB.
+		\item Probably less than 0.5\% of the total 87MB.
 	\end{itemize}
-	\item La transformada de Hough de OpenCV no puede usarse para detectar al vehículo de enfrente (sólo se detectan líneas rectas y círculos).
-	\item OpenCV hace el cálculo completo de la transformada en cada frame. Nuestra aplicación puede aprovechar el hecho de saber que es un video para no realizar el cálculo completo en cada frame y buscar alrededor del punto conocido del cálculo anterior.
+	\item OpenCV's Hough transform can not be used to detect a vehicle in front of the cameras (it can only detect lines and circles).
+	\item OpenCV does the full transform computation for each frame. Our application can (and must) take advantage of the knowing that the input is a video to compute as little as possible.
 \end{itemize}
 
-Además tenemos las ventajas típicas de programar una versión independiente de librerías:
+We also have the typical advantages of programming a library-free version of anything:
 \begin{itemize}
-	\item Conocimiento profundo de la transformada (funcionalidad menos abstracta).
-	\item Adaptación específica a la necesidad (minimalista, rápida, a la medida).
-	\item Libertad en funcionalidad, optimizaciones e interfaces.
+	\item Deep knowledge about the transform (exposed functionality).
+	\item Solution specific for the application (minimal, fast, only what is needed).
+	\item Freedom in functionality, optimization and interfaces.
 \end{itemize}
 
-En algún momento se iba a llegar al límite de la capacidad del raspberry utilizando OpenCV y para empujar ese límite se tendría que bajar a una solución específica sin uso de librerías generalizadas.
+Raspberry Pi limit was going to be hit at some point and to push that limit further a specific solution without general libraries (such as OpenCV) would have to be developed.
 
-Para implementar en C la transformada de Hough se llevaron a cabo las siguientes tareas:
+To develop a C implementation of the Hough transform the following tasks were done:
 
 \begin{itemize}
-	\item Estudio de la teoría detrás de la transformada de Hough.
-	\item Búsqueda y comparación de código existente para la transformada.
-	\item Adaptar una versión a usar sólo C (sustituir librerías).
-	\item Implementar optimizaciones
+	\item Studied the theory behind the Hough transform.
+	\item Sought and compared existing Hough transform code.
+	\item Adapted to use only C (and reduce libraries).
+	\item Implemented optimizations.
 	\begin{itemize}
-		\item (Ab)uso del preprocesador (para reducir bifurcaciones). 
-		\item Aritmética de punto fijo.
-		\item Tablas de funciones trigonométricas.
-		\item Memoria asignada estáticamente.
-		\item Region de interés.
-		\item Reducción de grados de libertad.
+		\item Preprocessor (ab)use (branch reduction).
+		\item Fixed point arithmetic.
+		\item Trigonometric functions lookup tables.
+		\item Statically allocated memory.
+		\item Region of interest.
+		\item Reduction of degrees of freedom.
 	\end{itemize}
 \end{itemize}
 
-Se utilizó SDL para dibujar en pantalla (no es necesario, pero sirve para ver y comprobar resultados) y se adaptó fast-edge (http://goo.gl/ARWJZj), un proyecto encontrado en internet, para hacer detección de bordes.
+SDL was used to draw to the screen (it is not necesarry but it is useful to see the results) and fast-edge (http://goo.gl/ARWJZj) was adapted for edge-detection.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection[Revisión bibliográfica transformada de Hough.]{Revisión bibliográfica de aplicaciones de la transformada de Hough.}
-Se han descargado 25 artículos relevantes al tema en los que se están observando aplicaciones de extracción de características usando la transformada de Hough. Al seleccionarlos se observó que hablan de las limitantes de la transformada, pequeñas modificaciones para resolverlas, así como propuestas y resultados experimentales.
+\subsubsection{Bibliographical review of Hugh transform applications.}
+25 articles relevant to the application were downloaded. Applications of the Hough transform used to extract features (not only lines) off images have been observed. They mention transform's limitation, some approaches to overcome them, suggest improvements and/or show experimental results.
 
