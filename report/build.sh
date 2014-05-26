@@ -1,5 +1,5 @@
-cp Reporte.tex tmp.tex
+cp report.tex tmp.tex
 pdflatex tmp.tex
 pdflatex tmp.tex
-mv tmp.pdf Reporte.pdf
+mv tmp.pdf report.pdf
 rm tmp.*
