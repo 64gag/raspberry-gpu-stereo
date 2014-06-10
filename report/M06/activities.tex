@@ -1,0 +1,54 @@
+\subsection{Activities}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{OV7670 deep exploration}
+\begin{itemize}
+	\item While trying to find the cause of the DCMI problem the OV7670 chip was studied.
+	\item Code to read and write to its internal registers was ported.
+	\item Different registers configurations were attempted and used to try to make it easier for the software implementation to sample the data.
+	\item Linux drivers' register sets were attempted without any good results.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{DCMI software workaroud}
+\begin{itemize}
+	\item After trying some new ideas and doing more tests it was decided to attempt to read the camera in software.
+	\item The objective was to:
+	\begin{itemize}
+		\item Read and interpret VSYNC, HREF and PXCLK signals.
+		\item Read data lines (D0-D7) at the rising edge of the PXCLK signal if HREF is high and VSYNC is low.
+	\end{itemize}
+	\item The main problems found while doing this were:
+	\begin{itemize}
+		\item Compiler's optimizations impact results greatly (deleting an unrelated variable would make a difference between the program succeeding/failing).
+		\item Impossibility to keep up with the data rate (sampling 8 lines of data in a very short ammount of time).
+	\end{itemize}
+	\item Pins were reassigned to be on the same port to make it possible to sample all the data with a single volatile read.
+	\item Software branches were minimized supported by the new pin assignment and OV7670's register configurations (i.e. there is a mode that makes the PXCLK toggle only if HREF is active).
+	\item This allowed to get a low resolution image at 30 fps.
+	\item However the image was very noisy.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Integration with the Raspberry}
+\begin{itemize}
+	\item Integration was done using the code to read the image in software.
+	\item A simple acknowledgment method is used.
+	\begin{itemize}
+		\item Two lines were connected between the Raspberry and the STM32.
+		\item One is !REQUEST (active-low, Raspberry output, STM32 input) and the other one is !READY (active-low, STM32 output, Raspberry input).
+		\item When the raspberry wants the next camera's frame it clears the !REQUEST line.
+		\item When the STM32 has finished reading a complete frame it clears the !READY line.
+		\item The frame is transferred through SPI.
+		\item This needs to be done this way because Raspberry can not be the SPI slave.
+		\item Double buffered mode can be implemented (interrupting the current frame capture and send the latest fully captured one) but was not because software "DCMI" is a temporal solution.
+	\end{itemize}
+	\item Integration and communication work.
+	\item However, due to the very high image noise, vision algorithms were not even attempted.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

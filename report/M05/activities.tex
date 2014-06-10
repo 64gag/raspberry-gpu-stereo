@@ -1,0 +1,19 @@
+\subsection{Activities}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{DCMI troubleshooting}
+\begin{itemize}
+	\item When trying to send images to the Raspberry using DMA it was found most data were zeros.
+	\item A lot of different software and hardware tests were done to diagnose the problem.
+	\begin{itemize}
+		\item DCMI interrupts work as expected.
+		\item DMA works.
+		\item If you disconnect a data pin DMA writes a one (due to STM32's pull-up resistor).
+		\item Every signal looks as expected using an oscilloscope.
+	\end{itemize}
+	\item It seems to be a hardware problem but what does not make sense is that you can (slowly) capture the camera data using software (without DCMI).
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
