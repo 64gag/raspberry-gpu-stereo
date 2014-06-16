@@ -1,0 +1,14 @@
+\begin{figure}[ht!]
+\begin{center}
+\scalebox{1.5}{
+\begin{tikztimingtable}
+	REQ			& H L L 13{H} ;[dotted] 2{H}; 5{H} \\
+	RDY			& H H 14{L} ;[dotted] 2{L}; 3{L} H H \\
+	CLK			& L L L 13{C} ;[dotted] 2{C}; 3{C} L\\
+	MISO			& U U U 18D{Image pixel data} U U\\
+\end{tikztimingtable}
+}
+\caption{Time diagram showing the communication protocol between the Raspberry and the STM32.}
+\label{fig_req_frame_time}
+\end{center}
+\end{figure}
