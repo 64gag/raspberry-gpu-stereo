@@ -1,0 +1,80 @@
+\subsection{Activities}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{GPU shaders}
+\begin{itemize}
+	\item Decoding shader was written.
+	\begin{itemize}
+		\item This is to visually see the encoded data.
+		\item Encoded data does not make a lot of sense visually.
+	\end{itemize}
+	\item Disparity map shader was written.
+	\begin{itemize}
+		\item Results are not as good as they can be.
+		\item A different approach is being written.
+		\begin{itemize}
+			\item Current approach allows to check only for 11 levels of disparities.
+			\item A more flexible and complex shader/pipeline is being written.
+			\item It is needed specially because the distance between cameras has not been decided yet.
+		\end{itemize}
+	\end{itemize}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Integration of both cameras}
+\begin{itemize}
+	\item \textbf{Rewired.}
+	\begin{itemize}
+		\item Both cameras are clocked from the board with the STM32F429ZIT6.
+		\item Both cameras' PWDN pins are connected to the same STM32F429ZIT6 pin (previously connected to ground).
+		\item Remaining pins were connected to their respective microcontroller's board.
+	\end{itemize}
+	\item \textbf{Sofware related-work.}
+	\begin{itemize}
+		\item Synchronization logic was added.
+		\begin{itemize}
+			\item On both ends (STM32 and Raspberry).
+		\end{itemize}
+		\item It is very important to get both images at the same time.
+		\item PWDN pin is used to:
+		\begin{itemize}
+			\item Halt internal device clock.
+			\item Reset all internal counters.
+			\item Keep registers.
+		\end{itemize}
+	\end{itemize}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Port to STM32F407VGT6's board.}
+\begin{itemize}
+	\item I am temporally going to work on this board too and the code had to be ported.
+	\item SPI, DCMI, DMA and EXTI are now working on the other board too.
+	\item Every pin had to be remapped.
+	\item Register names were adjusted (cost of not using peripheral libraries).
+	\item This board does not have external SDRAM.
+	\item This microcontroller's maximum SPI speed is 42 MHz.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Threaded programming}
+\begin{itemize}
+	\item Threaded programming was needed because reading the frames from the camera requires very little processing power.
+	\begin{itemize}
+		\item Just waiting for the STM32 is underusing Raspberry resources.
+	\end{itemize}
+	\item POSIX threads were chosen for the task.
+	\item Using real-time linux scheduling policies.
+	\item The skeleton code is done.
+	\item Tuning needs to be done when everything is ready.
+	\item Only three threads are used at the moment.
+	\begin{itemize}
+		\item \textbf{Capture:} Reads frames from the camera to memory from the SPI peripheral. Signals the STM32 boards to keep the synchronization.
+		\item \textbf{Depth:} Commands the GPU to perform the multiple rendering stages and get the resulting disparity map back to CPU memory.
+		\item \textbf{Lane:} Executes the Hough Transform.
+	\end{itemize}
+\end{itemize}
