@@ -1,0 +1,1 @@
+/usr/bin/c++       CMakeFiles/emb_vision.dir/emb_vision.cpp.o CMakeFiles/emb_vision.dir/graphics.cpp.o CMakeFiles/emb_vision.dir/ov7670.c.o CMakeFiles/emb_vision.dir/bcm2835.c.o  -o emb_vision -rdynamic -L/opt/vc/lib -lvcos -lbcm_host -lGLESv2 -lEGL -lpthread -lncurses -Wl,-rpath,/opt/vc/lib 

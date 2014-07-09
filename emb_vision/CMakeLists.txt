@@ -1,0 +1,13 @@
+cmake_minimum_required(VERSION 2.8)
+project( picam )
+SET(COMPILE_DEFINITIONS -Werror)
+include_directories(/opt/vc/include)
+include_directories(/opt/vc/userland-master/interface/vcos)
+include_directories(/opt/vc/userland-master)
+include_directories(/opt/vc/userland-master/interface/vcos/pthreads)
+include_directories(/opt/vc/userland-master/interface/vmcs_host/linux)
+include_directories(/opt/vc/userland-master/host_applications/linux/libs/bcm_host/include)
+link_directories(/opt/vc/lib)
+add_executable(emb_vision emb_vision.cpp graphics.cpp ov7670.c bcm2835.c)
+
+target_link_libraries(emb_vision libvcos.so libbcm_host.so GLESv2 EGL pthread ncurses)
