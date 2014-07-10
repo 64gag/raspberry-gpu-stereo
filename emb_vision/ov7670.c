@@ -9,17 +9,17 @@
 #define PIN_MISO RPI_V2_GPIO_P1_21
 #define PIN_SCK RPI_V2_GPIO_P1_23
 
-void OV_ReadFrames(uint8_t *frameLeft, uint8_t *frameRight, uint32_t *clock_div)
+void OV_ReadFrames(uint8_t *frameLeft, uint8_t *frameRight, uint32_t *args)
 {
-		bcm2835_spi_setClockDivider(clock_div[CAM_LEFT]);
+		bcm2835_spi_setClockDivider(args[ARG_SPI_DIV_LEFT]);
 		bcm2835_gpio_clr(PIN_FSX);
 		bcm2835_gpio_clr(PIN_CSL);
-			bcm2835_spi_transfern(frameLeft, TEX_SIZE);
+			bcm2835_spi_transfernb(NULL, frameLeft, TEX_SIZE, args[ARG_TRAN_DELAY_L]);
 		bcm2835_gpio_set(PIN_CSL);
 
-		bcm2835_spi_setClockDivider(clock_div[CAM_RIGHT]);
+		bcm2835_spi_setClockDivider(args[ARG_SPI_DIV_RIGHT);
 		bcm2835_gpio_clr(PIN_CSR);
-//			bcm2835_spi_transfern(frameRight, TEX_SIZE);
+			bcm2835_spi_transfernb(NULL, frameRight, TEX_SIZE, args[ARG_TRAN_DELAY_R]);
 		bcm2835_gpio_set(PIN_CSR);
 		bcm2835_gpio_set(PIN_FSX);
 }

@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 	struct sched_param priority_param;
 	int rc;
 
-	uint32_t spi_divider[2];
+	uint32_t arguments[ARG_COUNT] = {8, 0, 100, 0, 100000};
 
 	signal(SIGINT, sigintHandler);	/* Point the signal to the handler /
 
@@ -63,10 +63,19 @@ int main(int argc, char **argv)
 		switch (o)
 		{
 			case 'l':
-				spi_divider[CAM_LEFT] = atoi(optarg);
+				arguments[ARG_SPI_DIV_L] = atoi(optarg);
 				break;
 			case 'r':
-				spi_divider[CAM_RIGHT] = atoi(optarg);
+				arguments[ARG_SPI_DIV_R] = atoi(optarg);
+				break;
+			case 'd':
+				arguments[ARG_TRAN_DELAY_L] = atoi(optarg);
+				break;
+			case 'g'
+				arguments[ARG_TRAN_DELAY_R] = atoi(optarg);
+				break;
+			case 'f':
+				arguments[ARG_FRAME_DELAY] = atoi(optarg);
 				break;
 			case ':':
 				fprintf(stderr, "No argument specified to option -%c.\n", optopt);
@@ -75,6 +84,14 @@ int main(int argc, char **argv)
 			default:
 				fprintf(stderr, "Unexpected option -%c. Is this OK?\n", optopt);
 		}
+	}
+
+	if(!arguments[ARG_TRAN_DELAY_R]){
+		arguments[ARG_TRAN_DELAY_R] = arguments[ARG_TRAN_DELAY_L];
+	}
+
+	if(!arguments[ARG_SPI_DIV_R]){
+		arguments[ARG_SPI_DIV_R] = arguments[ARG_SPI_DIV_L];
 	}
 
 	/* Initialize attribute and set thread detach state to joinable */
@@ -89,13 +106,13 @@ int main(int argc, char **argv)
 	pthread_attr_setschedpolicy(&attr, SCHED_RR);
 	priority_param.sched_priority = sched_get_priority_max(SCHED_RR);
 	pthread_attr_setschedparam(&attr, &priority_param);
-	pthread_create(&thread[THREAD_CAPTURE], &attr, f_thread[THREAD_CAPTURE], (void *)spi_divider);
+	pthread_create(&thread[THREAD_CAPTURE], &attr, f_thread[THREAD_CAPTURE], (void *)arguments);
 
 	/* Processing threads: lower priority than capture thread */
 	priority_param.sched_priority = sched_get_priority_max(SCHED_RR) - 1;
 	pthread_attr_setschedparam(&attr, &priority_param);
 	for(int t = 1; t < THREAD_COUNT; t++) {
-		pthread_create(&thread[t], &attr, f_thread[t], NULL);
+		pthread_create(&thread[t], &attr, f_thread[t], (void *)arguments);
 	}
 
 	/* Destroy attribute */
@@ -115,7 +132,7 @@ int main(int argc, char **argv)
 		}			
 		pthread_mutex_unlock(&capture_mutex);
 
-		usleep(118333);
+		usleep(arguments[ARG_FRAME_DELAY]);
 	}
 
 	/* Kick the processing threads out of locked state */
@@ -154,7 +171,7 @@ void *Capture(void *t)
 	OV_InitCommunication();
 	#endif
 
-	uint32_t *divs = (uint32_t *)t;
+	uint32_t *args = (uint32_t *)t;
 
 	/* Make sure all threads are ready before starting */
 	#if DEBUG
@@ -184,7 +201,7 @@ void *Capture(void *t)
 		}
 
 		#if CAM
-		OV_ReadFrames(frame_data_l, frame_data_r, divs);
+		OV_ReadFrames(frame_data_l, frame_data_r, args);
 		#endif
 
 		/* Let processing threads know a frame is ready */

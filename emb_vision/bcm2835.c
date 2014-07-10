@@ -520,7 +520,7 @@ uint8_t bcm2835_spi_transfer(uint8_t value)
 }
 
 // Writes (and reads) an number of bytes to SPI
-void bcm2835_spi_transfernb(char* tbuf, char* rbuf, uint32_t len)
+void bcm2835_spi_transfernb(char* tbuf, char* rbuf, uint32_t len, uint32_t delay)
 {
     volatile uint32_t* paddr = bcm2835_spi0 + BCM2835_SPI0_CS/4;
     volatile uint32_t* fifo = bcm2835_spi0 + BCM2835_SPI0_FIFO/4;
@@ -596,7 +596,7 @@ void bcm2835_spi_transfernb(char* tbuf, char* rbuf, uint32_t len)
 
 
         }
-	usleep(SPI_USLEEP); /* Let other threads do things */
+	usleep(delay); /* Let other threads do things */
     }
     // Wait for DONE to be set
     while (!(bcm2835_peri_read_nb(paddr) & BCM2835_SPI0_CS_DONE))
