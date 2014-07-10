@@ -26,7 +26,7 @@ void DcmiDma_Init(void)
 
   /* DMA2 configuration and intialization */
   DMA2_Stream1->CR &= 0xf0100000;
-  while(DMA2_Stream1->CR & 1){}         /* Wait until DMA is disabled */  
+  while(DMA2_Stream1->CR & 1);         /* Wait until DMA is disabled */  
   DMA2_Stream1->NDTR = (uint32_t)(IMG_W*IMG_H/2);/* Number of data transfers */
   DMA2_Stream1->PAR = (uint32_t)(&(DCMI->DR));
 
@@ -139,7 +139,7 @@ void SpiDma_Init(void)
 
   /* DMA2 configuration and intialization */
   DMA2_Stream4->CR &= 0xf0100000;
-  while(DMA2_Stream4->CR & 1){}         /* Wait until DMA is disabled */  
+  while(DMA2_Stream4->CR & 1);         /* Wait until DMA is disabled */  
   DMA2_Stream4->NDTR = COMPLETE_NDTR;   /* Number of data transfers */
   DMA2_Stream4->PAR = (uint32_t)(&(SPI5->DR));
 
@@ -158,8 +158,8 @@ void SpiDma_Init(void)
               /* Double buffer */                     1<<18| \
               /* Priority [0,3] */                    3<<16| \
               /* Per inc offset (0= %Psize) */        0<<15| \
-              /* Mem size */                          1<<13| \
-              /* Periph size (0b00=8bits) */          1<<11| \
+              /* Mem size */                          0<<13| \
+              /* Periph size (0b00=8bits) */          0<<11| \
               /* Memory increment */                  1<<10| \
               /* Periph increment */                  0<< 9| \
               /* Circular mode */                     1<< 8| \
@@ -215,7 +215,7 @@ void SpiDma_Reset(void)
   /* Disable DMA stream and peripheral*/
   Spi_Disable();   
   DMA2_Stream4->CR &= 0xfffffffe;
-  while(DMA2_Stream4->CR & 1){}         /* Wait until DMA is disabled */
+  while(DMA2_Stream4->CR & 1);         /* Wait until DMA is disabled */
 
   /* Reconfigure important registers */
   DMA2_Stream4->CR &= 0xfff7ffff;       /* Make sure CT = 0 */

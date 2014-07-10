@@ -64,12 +64,18 @@ void GPIOInit(void){
   GPIO_Init_Structure.Pull = GPIO_NOPULL;
    HAL_GPIO_Init(GPIOF, &GPIO_Init_Structure);
 
-  /* SCCB and PWDN */
+  /* SCCB */
   GPIO_Init_Structure.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_Init_Structure.Pull = GPIO_PULLUP;
   GPIO_Init_Structure.Speed = GPIO_SPEED_HIGH;
-				/* SDIOC,	SDIOD,		PWDN */
-  GPIO_Init_Structure.Pin = GPIO_PIN_11 | GPIO_PIN_12 | GPIO_PIN_13;
+  GPIO_Init_Structure.Pin = GPIO_PIN_11 | GPIO_PIN_12;
+  HAL_GPIO_Init(GPIOC, &GPIO_Init_Structure);
+  
+  /* PWDN */
+  GPIO_Init_Structure.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_Init_Structure.Pull = GPIO_PULLDOWN;
+  GPIO_Init_Structure.Speed = GPIO_SPEED_HIGH;
+  GPIO_Init_Structure.Pin = GPIO_PIN_13;
   HAL_GPIO_Init(GPIOC, &GPIO_Init_Structure);
 
   /* This is to ensure CS line wired to the gyro and LCD remain up */

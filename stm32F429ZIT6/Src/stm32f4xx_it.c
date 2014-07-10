@@ -6,7 +6,7 @@
 
 uint32_t spi_accum = 0;
 __IO uint32_t *DMA2S4_MAR[2] = {&(DMA2_Stream4->M0AR), &(DMA2_Stream4->M1AR)};
-
+uint32_t lines = 0;
 #ifndef NO_SDRAM
  extern uint32_t *dcmi_buff;
  uint8_t *dcmi_ptr = (uint8_t *)(SDRAM_BANK_ADDR + WRITE_READ_ADDR);
@@ -14,7 +14,6 @@ __IO uint32_t *DMA2S4_MAR[2] = {&(DMA2_Stream4->M0AR), &(DMA2_Stream4->M1AR)};
  extern uint8_t dcmi_buff[];
  uint8_t *dcmi_ptr = &dcmi_buff[0];
 #endif
-
 
 void NMI_Handler(void)
 {
@@ -143,10 +142,12 @@ void DCMI_IRQHandler(void)
   }
   
   if(SR & 0x8){       /* VSYNC */
+    lines = 0;
     ICR |= 0x8;
   }
   
   if(SR & 0x10){      /* Line */
+    lines++;
     ICR |= 0x10;
   }   
 
@@ -162,15 +163,15 @@ void EXTI1_IRQHandler(void)
 /* FS rising */
 void EXTI2_IRQHandler(void)
 {
-  DcmiDma_Pause();
-  spi_accum = 0;
-  SpiDma_Reset();
+  GPIOC->BSRRH = 0x2000; /* Clear PWDN (PC13) */
   EXTI->PR = 0x04;
 }
 
 /* CS falling */
 void EXTI3_IRQHandler(void)
 {
+  GPIOC->BSRRL = 0x2000; /* Set PWDN (PC13) */
+  DcmiDma_Pause();
   Spi_Enable();
   EXTI->PR = 0x08;
 }
@@ -178,6 +179,8 @@ void EXTI3_IRQHandler(void)
 /* CS rising */
 void EXTI4_IRQHandler(void)
 {
+  spi_accum = 0;
+  SpiDma_Reset();
   DcmiDma_Resume();
   EXTI->PR = 0x10;
 }

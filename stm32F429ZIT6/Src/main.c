@@ -43,7 +43,7 @@ int main(void)
   DcmiDma_Init();
   SpiDma_Init();
  
-  while(1){}
+  while(1);
 }
 
 static void Clocks_Config(void)
@@ -77,7 +77,7 @@ static void Clocks_Config(void)
 
 #ifdef PLL_I2S
 	RCC_PClockInitStruct.PeriphClockSelection = RCC_PERIPHCLK_I2S;
-	RCC_PClockInitStruct.PLLI2S.PLLI2SN = 192;
+	RCC_PClockInitStruct.PLLI2S.PLLI2SN = 265;
 	RCC_PClockInitStruct.PLLI2S.PLLI2SR = 2;
 	HAL_RCCEx_PeriphCLKConfig(&RCC_PClockInitStruct);
 #endif

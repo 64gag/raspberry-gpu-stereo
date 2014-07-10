@@ -39,7 +39,7 @@ void SCCB_Init()
 	SET_HIGH(SDIO_D);
 
         SCCB_writeSlaveRegister(OV7670_SCCB_ADDRESS, 0x09, 0x03); /* Drive current */
-        SCCB_writeSlaveRegister(OV7670_SCCB_ADDRESS, 0x3a, 0x04); /* YUYV sequence */
+        //SCCB_writeSlaveRegister(OV7670_SCCB_ADDRESS, 0x3a, 0x04); /* YUYV sequence */
         SCCB_writeSlaveRegister(OV7670_SCCB_ADDRESS, 0x0c, 0x08); /* Scale enable */
         SCCB_writeSlaveRegister(OV7670_SCCB_ADDRESS, 0x12, 0x08); /* QCIF */
 
