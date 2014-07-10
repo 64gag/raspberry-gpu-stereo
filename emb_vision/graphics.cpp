@@ -14,7 +14,7 @@
 #include "graphics.h"
 
 #define glCheck() assert(glGetError() == 0)
-#define DEBUG_SHADERS 1
+#define DEBUG_SHADERS 0
 
 uint32_t GScreenWidth;
 uint32_t GScreenHeight;

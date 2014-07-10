@@ -1,4 +1,4 @@
-#define CAM 0 
+#define CAM 1 
 
 #if CAM
  #define TEX_W 176
@@ -15,7 +15,10 @@
 
 #define CAM_LEFT 0
 #define CAM_RIGHT 1
-#define DEBUG 1
+
+#define SPI_USLEEP 0
+#define SPI_TX 0
+#define SPI_GRAYONLY 0
 
 enum tex_enum_t{
 	TEX_LIRAW,

@@ -20,6 +20,7 @@
 
 
 #include "bcm2835.h"
+#include "emb_vision.h"
 
 // This define enables a little test program (by default a blinking output on pin RPI_GPIO_PIN_11)
 // You can do some safe, non-destructive testing on any platform with:
@@ -525,7 +526,13 @@ void bcm2835_spi_transfernb(char* tbuf, char* rbuf, uint32_t len)
     volatile uint32_t* fifo = bcm2835_spi0 + BCM2835_SPI0_FIFO/4;
     uint32_t TXCnt=0;
     uint32_t RXCnt=0;
-
+    uint32_t IGCnt = 0;
+    uint32_t offset=0;
+    uint32_t flip = 1;
+#if !SPI_GRAYONLY
+	len -= 2*144;
+	len *= 2;
+#endif
     // This is Polled transfer as per section 10.6.1
     // BUG ALERT: what happens if we get interupted in this section, and someone else
     // accesses a different peripheral? 
@@ -536,6 +543,7 @@ void bcm2835_spi_transfernb(char* tbuf, char* rbuf, uint32_t len)
     // Set TA = 1
     bcm2835_peri_set_bits(paddr, BCM2835_SPI0_CS_TA, BCM2835_SPI0_CS_TA);
 
+    #if SPI_TX
     // Use the FIFO's to reduce the interbyte times
     while((TXCnt < len)||(RXCnt < len))
     {
@@ -545,18 +553,50 @@ void bcm2835_spi_transfernb(char* tbuf, char* rbuf, uint32_t len)
            bcm2835_peri_write_nb(fifo, tbuf[TXCnt]);
            TXCnt++;
         }
+    #else
+    /* Feed the dog before */
+    bcm2835_peri_write_nb(fifo, 0x00);
+    bcm2835_peri_write_nb(fifo, 0x00);
+    bcm2835_peri_write_nb(fifo, 0x00);
+    int first = 4;
+    while(RXCnt < len){
+    #endif
         //Rx fifo not empty, so get the next received bytes
         while(((bcm2835_peri_read(paddr) & BCM2835_SPI0_CS_RXD))&&( RXCnt < len ))
         {
-           rbuf[RXCnt] = bcm2835_peri_read_nb(fifo);
-           RXCnt++;
-		#if TEX_W == 176
-		if(!((RXCnt + 2) % 176)){
-			RXCnt += 2;
-			TXCnt += 2;
-		}
+		#if !SPI_TX
+           		bcm2835_peri_write_nb(fifo, 0x00);
 		#endif
+
+		#if TEX_W == 176
+			#if SPI_GRAYONLY
+			if(!(RXCnt % 174)){
+				offset += 2;
+				rbuf[RXCnt+offset-1] = 0xff;
+			}
+			#else
+			if(flip && !(RXCnt % 174)){
+				offset += 2;
+			}
+			#endif
+		#endif
+
+		#if SPI_GRAYONLY	
+		        rbuf[RXCnt + offset] = bcm2835_peri_read_nb(fifo);
+         		RXCnt++;
+		#else /* Receiving full data, need to ignore UV values */
+			if(flip){
+		           rbuf[RXCnt + offset] = bcm2835_peri_read_nb(fifo);
+        		   RXCnt++;
+			}else{
+		           bcm2835_peri_read_nb(fifo);
+			}
+			flip ^= 1;
+		#endif
+
+
         }
+	usleep(SPI_USLEEP); /* Let other threads do things */
     }
     // Wait for DONE to be set
     while (!(bcm2835_peri_read_nb(paddr) & BCM2835_SPI0_CS_DONE))
@@ -564,7 +604,10 @@ void bcm2835_spi_transfernb(char* tbuf, char* rbuf, uint32_t len)
 
     // Set TA = 0, and also set the barrier
     bcm2835_peri_set_bits(paddr, 0, BCM2835_SPI0_CS_TA);
+//printf("Len: %d\t Rx: %d\tOffset: %d\tIg: %d\n", len, RXCnt, offset, IGCnt);
+//printf("%x %x %x\n", rbuf[RXCnt + offset - 3], rbuf[RXCnt + offset - 2], rbuf[RXCnt + offset - 1]);
 }
+
 
 // Writes an number of bytes to SPI
 void bcm2835_spi_writenb(char* tbuf, uint32_t len)

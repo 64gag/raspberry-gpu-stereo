@@ -1,4 +1,5 @@
 #include "emb_vision.h"
+#include <stdio.h>
 #include "ov7670.h"
 
 #define PIN_FSX RPI_V2_GPIO_P1_11
@@ -10,7 +11,6 @@
 
 void OV_ReadFrames(uint8_t *frameLeft, uint8_t *frameRight, uint32_t *clock_div)
 {
-	bcm2835_spi_begin();
 		bcm2835_spi_setClockDivider(clock_div[CAM_LEFT]);
 		bcm2835_gpio_clr(PIN_FSX);
 		bcm2835_gpio_clr(PIN_CSL);
@@ -19,10 +19,9 @@ void OV_ReadFrames(uint8_t *frameLeft, uint8_t *frameRight, uint32_t *clock_div)
 
 		bcm2835_spi_setClockDivider(clock_div[CAM_RIGHT]);
 		bcm2835_gpio_clr(PIN_CSR);
-			bcm2835_spi_transfern(frameRight, TEX_SIZE);
+//			bcm2835_spi_transfern(frameRight, TEX_SIZE);
 		bcm2835_gpio_set(PIN_CSR);
 		bcm2835_gpio_set(PIN_FSX);
-	bcm2835_spi_end();
 }
 
 void OV_InitCommunication(void)
@@ -50,9 +49,12 @@ void OV_InitCommunication(void)
 	bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
 	bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
 	bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
+
+	bcm2835_spi_begin();
 }
 
 void OV_EndCommunication(void)
 {
+	bcm2835_spi_end();
 	bcm2835_close();
 }

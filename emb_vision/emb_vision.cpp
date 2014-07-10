@@ -8,6 +8,8 @@
 #include "graphics.h"
 #include "emb_vision.h"
 
+#define DEBUG 0
+
 #if CAM
  #include "ov7670.h"
  /* Memory to store the frames */
@@ -105,8 +107,6 @@ int main(int argc, char **argv)
 		capture = 1;
 		pthread_cond_broadcast(&capture_cv); 
 		pthread_mutex_unlock(&capture_mutex);
-		
-		usleep(1000);
 
 		/* Lock until capture is done */
 		pthread_mutex_lock(&capture_mutex);
@@ -114,6 +114,8 @@ int main(int argc, char **argv)
 			pthread_cond_wait(&capture_cv, &capture_mutex);
 		}			
 		pthread_mutex_unlock(&capture_mutex);
+
+		usleep(118333);
 	}
 
 	/* Kick the processing threads out of locked state */
@@ -282,7 +284,7 @@ void *Depth(void *t)
 		#endif
 		pthread_mutex_unlock(&frame_mutex);
 
-		selected_texture = (selected_texture + 1) % (GRID_ROWS * GRID_COLS);
+//		selected_texture = (selected_texture + 1) % (GRID_ROWS * GRID_COLS);
 
 		BeginFrame();
 			/* First required textures are drawn to frame buffers */
