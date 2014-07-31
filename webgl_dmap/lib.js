@@ -13,7 +13,7 @@ function main()
 	/* Now get the right one */
 	var image_right = new Image();
 	image_right.onload = function() {
-		/* Ready to go! */
+		/* Ready to go! so GO! */
 		render(image_left, image_right);
 	}
 	image_right.src = "img_right.bmp";
@@ -42,19 +42,47 @@ function DrawTextureRect(gl, texture, target, x0, y0, x1, y1, proggy)
 		gl.viewport (0, 0, target.width, target.height);
 	}
 
-	/* Get locations */
+	/* Get vertex location */
 	var _vertex = gl.getAttribLocation(proggy, "vertex");
-	var _offset = gl.getUniformLocation(proggy, "offset");
-	var _scale = gl.getUniformLocation(proggy, "scale");
-	var _texelsize = gl.getUniformLocation(proggy, "texelsize");
-	var _tex = gl.getUniformLocation(proggy, "tex");
 
 	/* Set the uniforms */
-	gl.uniform2f(_offset, x0, y0);
-	gl.uniform2f(_scale, x1-x0, y1-y0);
-	gl.uniform2f(_texelsize, 1.0/texture.width, 1.0/texture.height);
-	gl.uniform1i(_tex, 0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "offset"), x0, y0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "scale"), x1 - x0, y1 - y0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "texelsize"), 1.0/texture.width, 1.0/texture.height);
+	gl.uniform1i(gl.getUniformLocation(proggy, "tex"), 0);
 
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.vertexAttribPointer(_vertex, 4, gl.FLOAT, false, 16, 0);
+	gl.enableVertexAttribArray(_vertex);
+
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+	if(target){
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0, 0, screen_w, screen_h);
+	}
+}
+
+function DrawTextureRect2(gl, texture, target, x0, y0, x1, y1, proggy, k)
+{
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.useProgram(proggy);
+
+	if (target){
+		gl.bindFramebuffer(gl.FRAMEBUFFER, target);
+		gl.viewport (0, 0, target.width, target.height);
+	}
+
+	/* Get vertex location */
+	var _vertex = gl.getAttribLocation(proggy, "vertex");
+
+	/* Set the uniforms */
+	gl.uniform2f(gl.getUniformLocation(proggy, "offset"), x0, y0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "scale"), x1 - x0, y1 - y0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "texelsize"), 1.0/texture.width, 1.0/texture.height);
+	gl.uniform1f(gl.getUniformLocation(proggy, "k"), k);
+	gl.uniform1i(gl.getUniformLocation(proggy, "tex"), 0);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 	gl.vertexAttribPointer(_vertex, 4, gl.FLOAT, false, 16, 0);
@@ -76,24 +104,54 @@ function DrawDisparityRect(gl, tex_left, tex_right, tex_dmap, target, x0, y0, x1
 
 	gl.useProgram(proggy);
 
-	/* Get locations */
+	/* Get vertex location */
 	var _vertex = gl.getAttribLocation(proggy, "vertex");
-	var _offset = gl.getUniformLocation(proggy, "offset");
-	var _scale = gl.getUniformLocation(proggy, "scale");
-	var _texelsize = gl.getUniformLocation(proggy, "texelsize");
-	var _d = gl.getUniformLocation(proggy, "d");
-	var _tex_left = gl.getUniformLocation(proggy, "tex_left");
-	var _tex_right = gl.getUniformLocation(proggy, "tex_right");
-	var _tex_dmap = gl.getUniformLocation(proggy, "tex_dmap");
 
 	/* Set the uniforms */
-	gl.uniform2f(_offset, x0, y0);
-	gl.uniform2f(_scale, x1-x0, y1-y0);
-	gl.uniform2f(_texelsize, 1.0/tex_left.width, 1.0/tex_left.height);  
-	gl.uniform1f(_d, d);
-	gl.uniform1i(_tex_left, 0);
-	gl.uniform1i(_tex_right, 1);
-	gl.uniform1i(_tex_dmap, 2);
+	gl.uniform2f(gl.getUniformLocation(proggy, "offset"), x0, y0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "scale"), x1 - x0, y1 - y0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "texelsize"), 1.0/tex_left.width, 1.0/tex_left.height);  
+	gl.uniform1f(gl.getUniformLocation(proggy, "d"), d);
+	gl.uniform1i(gl.getUniformLocation(proggy, "tex_left"), 0);
+	gl.uniform1i(gl.getUniformLocation(proggy, "tex_right"), 1);
+	gl.uniform1i(gl.getUniformLocation(proggy, "tex_dmap"), 2);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, tex_left);
+	gl.activeTexture(gl.TEXTURE1);
+	gl.bindTexture(gl.TEXTURE_2D, tex_right);
+	gl.activeTexture(gl.TEXTURE2);
+	gl.bindTexture(gl.TEXTURE_2D, tex_dmap);
+	gl.activeTexture(gl.TEXTURE0);
+
+	gl.vertexAttribPointer(_vertex, 4, gl.FLOAT, false, 16, 0);
+	gl.enableVertexAttribArray(_vertex);
+	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	gl.viewport(0, 0, screen_w, screen_h);
+}
+
+function DrawDisparityRect2(gl, tex_left, tex_right, tex_dmap, target, x0, y0, x1, y1, proggy)
+{
+	gl.bindFramebuffer(gl.FRAMEBUFFER, target);
+	gl.viewport (0, 0, target.width, target.height);
+
+	gl.useProgram(proggy);
+
+	/* Get locations */
+	var _vertex = gl.getAttribLocation(proggy, "vertex");
+
+	/* Set the uniforms */
+	gl.uniform2f(gl.getUniformLocation(proggy, "offset"), x0, y0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "scale"), x1 - x0, y1 - y0);
+	gl.uniform2f(gl.getUniformLocation(proggy, "texelsize"), 1.0/tex_left.width, 1.0/tex_left.height);  
+	gl.uniform1i(gl.getUniformLocation(proggy, "tex_left"), 0);
+	gl.uniform1i(gl.getUniformLocation(proggy, "tex_right"), 1);
+	gl.uniform1i(gl.getUniformLocation(proggy, "tex_dmap"), 2);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 
@@ -156,7 +214,7 @@ function render(image_left, image_right)
 	}
 
 	/* Textures and framebuffers */
-	for (var i = 0; i < _FBS.length; i++) {
+	for (var i = 0; i < FBS.length; i++) {
 		/* Texture */
 		var texture = gl.createTexture();
 		gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -172,15 +230,15 @@ function render(image_left, image_right)
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image_right);
 			texture.width = image_right.width;
 		}else{
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image_left.width/_FBS[i].WDIV, image_left.height/_FBS[i].WDIV, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);		
-			texture.width = image_left.width/_FBS[i].WDIV;
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image_left.width/FBS[i].WDIV, image_left.height/FBS[i].WDIV, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);		
+			texture.width = image_left.width/FBS[i].WDIV;
 		}
 		texture.height = image_left.height
 
 		/* Framebuffer */
 		var framebuffer = gl.createFramebuffer();
-		framebuffer.width = image_left.width/_FBS[i].WDIV;
-		framebuffer.height = image_left.height/_FBS[i].WDIV;
+		framebuffer.width = image_left.width/FBS[i].WDIV;
+		framebuffer.height = image_left.height/FBS[i].WDIV;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -195,17 +253,17 @@ function render(image_left, image_right)
 	console.timeEnd('Drawing time');
 
 	/* Draw the grid */
-//	var tex = rows * cols - 1;
-	var tex = 0;
+	var tex = rows * cols - 1;
+	rows -= 1;
 	var grid_col_size = 2.0 / cols;
 	var grid_row_size = 2.0 / rows;
 
 	for(var row = 0; row < rows; row++){
-//		for(var col = cols - 1; col >= 0; col--){
-		for(var col = 0; col < cols; col++){
+		for(var col = cols - 1; col >= 0; col--){
 			var colx = -1.0 + col * grid_col_size;
 			var rowy = -1.0 + row * grid_row_size;
-			DrawTextureRect(gl, textures[tex++], null, colx, rowy, colx + grid_col_size, rowy + grid_row_size, programs[0]);
+			DrawTextureRect(gl, textures[tex--], null, colx, rowy, colx + grid_col_size, rowy + grid_row_size, programs[0]);
+
 		}
 	}
 }
