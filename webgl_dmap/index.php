@@ -4,11 +4,16 @@
 <meta charset='utf-8'/>
 <title>GPU accelerated stereo matching</title>
 <script type="text/javascript">
-	var e = <?php if(isset($_GET["e"])){ echo $_GET["e"]; }else{ echo "1"; }; ?>;
-	var b = <?php if(isset($_GET["b"])){ echo $_GET["b"]; }else{ echo "1"; }; ?>;
-	var p = <?php if(isset($_GET["p"])){ echo $_GET["p"]; }else{ echo "1"; }; ?>;
+	var edge = <?php if(isset($_GET["e"])){ echo $_GET["e"]; }else{ echo "1"; }; ?>;
+	var blur = <?php if(isset($_GET["b"])){ echo $_GET["b"]; }else{ echo "1"; }; ?>;
+	var resize = <?php if(isset($_GET["r"])){ echo $_GET["r"]; }else{ echo "0"; }; ?>;
+
+	var pyramid = <?php if(isset($_GET["p"])){ echo $_GET["p"]; }else{ echo "4"; }; ?>;
+	var d_0 = <?php if(isset($_GET["d0"])){ echo $_GET["d0"]; }else{ echo "0"; }; ?>;
+	var d_times = <?php if(isset($_GET["dt"])){ echo $_GET["dt"]; }else{ echo "2"; }; ?>;
+
 </script>
-<script type="text/javascript" src="method<?php if(isset($_GET["m"])){ echo $_GET["m"]; }else{ echo "7"; }; ?>.js"></script>
+<script type="text/javascript" src="method<?php if(isset($_GET["m"])){ echo $_GET["m"]; }else{ echo "2"; }; ?>.js"></script>
 <script type="text/javascript" src="lib.js" /></script>
 </head>
 
