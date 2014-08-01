@@ -16,5 +16,5 @@ void main(void)
 {
 	gl_FragColor = ( texture2D(tex, tc_ul) + 2.0*texture2D(tex, tc_uc) + texture2D(tex, tc_ur) +
 			 2.0*texture2D(tex, tc_cl) + 4.0*texture2D(tex, tc_cc) + 2.0*texture2D(tex, tc_cr) +
-			 texture2D(tex, tc_dl) + 2.0*texture2D(tex, tc_dc) + texture2D(tex, tc_dr)) / 14.0;
+			 texture2D(tex, tc_dl) + 2.0*texture2D(tex, tc_dc) + texture2D(tex, tc_dr)) / 16.0;
 }
