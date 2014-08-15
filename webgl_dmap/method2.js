@@ -1,5 +1,5 @@
-var cols = 2;
-var rows = 3 * pyramid + 4;
+var w = 384;
+var h = 288;
 
 /* These will be filled later */
 var _texelsizes = [];
@@ -64,6 +64,13 @@ for(var i = pyramid; i >= 0; i--){
 	}
 }
 
+/* Controls of what you see */
+var dtex = [6*pyramid + 2*_FEATURE.DMAP + _SIDE.LEFT + 3];
+//var dtex = [2*_FEATURE.DMAP + _SIDE.LEFT + 2];
+//var dtex = [0];
+var rows = 1;
+var cols = Math.ceil(dtex.length/rows);
+
 function renderInit(gl, textures, framebuffers, programs)
 {
 	/* Set the uniforms of all programs */
@@ -96,14 +103,14 @@ function renderInit(gl, textures, framebuffers, programs)
 	_k = gl.getUniformLocation(programs[_FS.CONTRAST], "k");
 }
 
-function render(gl, textures, framebuffers, programs)
+function render()
 {
+	console.time('RenderTime');
 	/* Initialize to white */
 	var dmap_index = 2*_FEATURE.DMAP + _SIDE.LEFT + 2;
 	gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffers[dmap_index]);
 	gl.clearColor(1.0, 1.0, 1.0, 1.0);
 	gl.clear(gl.COLOR_BUFFER_BIT);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 	/* Copy the original image to its place at the pyramid */
 	var left_index = 6*pyramid + 2*_FEATURE.RAW + _SIDE.LEFT + 2;
@@ -141,8 +148,8 @@ function render(gl, textures, framebuffers, programs)
 
 	gl.useProgram(programs[_FS.DMAP]);
 	gl.uniform2f(_texelsizes[_FS.DMAP], 1.0/textures[left_index].width, 1.0/textures[left_index].height);
-	for(var x = 0; x < d_times; x++){
-		gl.uniform1f(_d, d_0++);
+	for(var x = d_0; x < d_times; x++){
+		gl.uniform1f(_d, x);
 		runShaderDisparity(gl, textures[left_index], textures[right_index], textures[dmap_index], framebuffers[dmap_index]);
 	}
 
@@ -169,4 +176,8 @@ function render(gl, textures, framebuffers, programs)
 		gl.uniform2f(_texelsizes[_FS.CONTRAST], 1.0/textures[dmap_index].width, 1.0/textures[dmap_index].height);
 		runShader(gl, textures[dmap_index], framebuffers[dmap_index + 1]);
 	}
+
+	renderGrid();
+	console.timeEnd('RenderTime');
+	window.requestAnimationFrame(render);
 }
