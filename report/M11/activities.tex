@@ -1,0 +1,84 @@
+\subsection{Activities}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Refinements to the threaded code}
+\begin{itemize}
+	\item Scheduling policies for POSIX threads were studied in more detail and some portions of the code were fixed.
+	\item Added command line interface to the program to set these options.
+	\item This code has not been tested yet.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Compatible WebGL platform}
+As stated earlier in this report WebGL is based on OpenGL ES 2.0--which is the OpenGL implementation found in the Raspberry. A WebGL platform/codebase was developed to take advantage of the following benefits:
+\begin{itemize}
+	\item Faster validation of shader programs.
+	\item Easier to share/show results (most people have access to a WebGL compatible browser and internet).
+	\item Better evaluation tools (browsers have built in tools to profile GPU activity).
+	\item Portability (few to no changes are needed to run the same code on the Raspberry GPU).
+\end{itemize}
+
+Tasks performed include:
+\begin{itemize}
+	\item Porting the C code to javascript.
+	\item Setting up a web server.
+	\item Coding an interface to the code through HTTP requests.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Modifications to the codebase}
+
+During the development of the WebGL platform several modifications were done to the code that commands the GPU. The objectives were to improve:
+\begin{itemize}
+	\item Performance.
+	\begin{itemize}
+		\item Initialize uniforms outside the drawing functions.
+		\item Only change programs if necessary.
+		\item Only set buffers once.
+		\item Everything that could be done outside function calls is done outside function calls.
+	\end{itemize}
+	\item Flexibility.
+	\begin{itemize}
+		\item Different stereo-matching methods can be added without modifying the core of the code.
+	\end{itemize}
+	\item Portability.
+	\begin{itemize}
+		\item Code on the Raspberry should mimic the WebGL platform.
+		\item Language is different but logic is the same.
+		\item GPU shader programs are exactly the same.
+	\end{itemize}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Documentation/presentation}
+Figures (\ref{fig_hwconnectionsglobal}, \ref{fig_both_frames}, \ref{fig_matching1-result}) and tables (\ref{tab_boardpins_final}) were generated.
+
+These figures show the hardware connections for both boards, their signaling and the output from the GPU stereo match, respectively.
+
+The table shows the signals and the corresponding pins from each STM32 board and the Rasberry.
+
+\input{fig/hwconnectionsglobal.tex}
+\input{tab/boardpins_final.tex}
+\input{fig/both_frames.tex}
+\input{fig/matching1-result.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Stereo-matching on GPU}
+\begin{itemize}
+	\item A method has been fully implemented in GPU.
+	\item Results from this method are shown in figure \ref{fig/matching1-result.tex}.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Paper}
+
+I am writing a paper in which I will discuss and conclude about:
+\begin{itemize}
+	\item GPGPU in general.
+	\item GPGPU on embedded GPUs (in general and specifically through OpenGL ES 2.0).
+	\item Solving the stereo matching problem on the GPU.
+	\item The specifics of doing this on the Raspberry (which is a common board, but will mention other options in general).
+	\item Report the results (time, accuracy) of a case study.
+	\item Share code and results through the WebGL platform.
+\end{itemize}
