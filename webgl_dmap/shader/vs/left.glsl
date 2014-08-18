@@ -1,3 +1,5 @@
+precision lowp float;
+
 uniform vec2 texelsize;
 uniform vec2 offset;
 uniform vec2 scale;

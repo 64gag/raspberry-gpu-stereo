@@ -1,4 +1,4 @@
-precision mediump float;
+precision lowp float;
 
 uniform sampler2D tex;
 
@@ -16,5 +16,5 @@ void main(void)
 {
 	gl_FragColor = ( texture2D(tex, tc_ul) + texture2D(tex, tc_uc) + texture2D(tex, tc_ur) + 
 			 texture2D(tex, tc_cl) + texture2D(tex, tc) + texture2D(tex, tc_cr) +
-			 texture2D(tex, tc_dl) + texture2D(tex, tc_dc) + texture2D(tex, tc_dr) ) * 2.0 / 9.0;
+			 texture2D(tex, tc_dl) + texture2D(tex, tc_dc) + texture2D(tex, tc_dr) ) * 0.2222;
 }

@@ -1,3 +1,5 @@
+precision lowp float;
+
 uniform vec2 offset;
 uniform vec2 scale;
 uniform vec2 from;
@@ -14,5 +16,3 @@ void main(void)
 	pos.xy = pos.xy * scale + offset;
 	gl_Position = pos;
 }
-
-/* Get a centered 256x256 texture from any image size */
