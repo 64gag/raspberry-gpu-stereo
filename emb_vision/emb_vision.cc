@@ -4,6 +4,7 @@
 #include <time.h>
 #include <signal.h>
 #include <stdint.h>
+#include <vector>
 
 #include "graphics.h"
 #include "emb_vision.h"
@@ -13,19 +14,25 @@
 #if CAM
  #include "ov7670.h"
  /* Memory to store the frames */
- uint8_t frame_data_l[TEX_SIZE];
- uint8_t frame_data_r[TEX_SIZE];
+ uint8_t frame_data_l[IMG_SIZE];
+ uint8_t frame_data_r[IMG_SIZE];
 #else
  #include "img.h"
 #endif
 
+extern uint32_t GScreenWidth;
+extern uint32_t GScreenHeight;
+extern EGLDisplay GDisplay;
+extern EGLSurface GSurface;
+extern EGLContext GContext;
+
 /* Prototypes */
 void *Capture(void *t);
-void *Depth(void *t);
+void Depth(void *t);
 void *Lane(void *t);
 
 /* Pointer to array of pointers to functions */
-void *(*f_thread[3])(void *t) = {Capture, Depth, Lane};
+//void *(*f_thread[3])(void *t) = {Capture, Depth, Lane};
 
 /* Synchronization variables */
 uint8_t ready_threads = 0;
@@ -71,7 +78,7 @@ int main(int argc, char **argv)
 			case 'd':
 				arguments[ARG_TRAN_DELAY_L] = atoi(optarg);
 				break;
-			case 'g'
+			case 'g':
 				arguments[ARG_TRAN_DELAY_R] = atoi(optarg);
 				break;
 			case 'f':
@@ -93,7 +100,7 @@ int main(int argc, char **argv)
 	if(!arguments[ARG_SPI_DIV_R]){
 		arguments[ARG_SPI_DIV_R] = arguments[ARG_SPI_DIV_L];
 	}
-
+#if 0
 	/* Initialize attribute and set thread detach state to joinable */
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -161,7 +168,8 @@ int main(int argc, char **argv)
 	#if DEBUG
 		printf("All threads completed. Exiting.\n");
 	#endif
-
+#endif
+	Depth(NULL);
  return 0;
 }
 
@@ -227,37 +235,53 @@ void *Capture(void *t)
  pthread_exit(NULL);
 }
 
-void *Depth(void *t)
+void Depth(void *t)
 {
-	InitGraphics();
+	std::vector<GLTexture> textures;
+	std::vector<GLShader> shaders;
+	std::vector<GLProgram> programs;
 
-	/* Textures for each program */
-	GfxTexture textures[GRID_COLS*GRID_ROWS];
+	GLint k_location;
+	int left_index = 0;
+	int right_index = 1;
+	int stereo_index = 2;
+	int smallest_index = 3;
+	int dmap_index = 7;
 
-	/* Inputs are greyscale */
-	textures[TEX_LIRAW].CreateGreyScale(TEX_W, TEX_H);
-	textures[TEX_RIRAW].CreateGreyScale(TEX_W, TEX_H);
+	InitGraphics(textures, shaders, programs);
 
-	/* The rest are encoded RGBA (to be able to write to them) */
-	for(int i = TEX_LHENC; i < TEX_HDEC; i++){
-		textures[i].CreateRGBA(TEX_W/4, TEX_H);	/* Encoded! divide by 4 */
-		textures[i].GenerateFrameBuffer();
-	}
-	textures[TEX_HDEC].CreateRGBA(TEX_W, TEX_H); /* This is not encoded, visualize output here */
-	textures[TEX_HDEC].GenerateFrameBuffer();
-
-	/* Array of pointers to "support" grid logic */
-	GfxTexture* tex_grid[GRID_COLS*GRID_ROWS];
-	for(int i = 0; i < GRID_COLS * GRID_ROWS; i++){
-		tex_grid[i] = &textures[i];
+	/* Set offset and scale uniforms, get texelsize locations */
+	for(std::vector<GLProgram>::size_type i = 0; i < programs.size(); i++) {
+		glUseProgram(programs[i].id());
+		glUniform2f(glGetUniformLocation(programs[i].id(), "offset"), -1.0f, -1.0f);
+		glUniform2f(glGetUniformLocation(programs[i].id(), "scale"), 2.0f, 2.0f);
+		programs[i].set_texel_location(glGetUniformLocation(programs[i].id(), "texelsize"));
 	}
 
-	int selected_texture = TEX_GRID;
+	/* Set constant texelsizes */
+	glUseProgram(programs[FS_PACK].id());
+	glUniform2f(programs[FS_PACK].id(), 1.0f/textures[left_index].width(), 1.0f/textures[left_index].height());
+	glUseProgram(programs[FS_DMAP0].id());
+	glUniform2f(programs[FS_DMAP0].texel_location(), 1.0f/textures[smallest_index].width(), 1.0f/textures[smallest_index].height());
+	glUseProgram(programs[FS_DILATE].id());
+	glUniform2f(programs[FS_DILATE].texel_location(), 1.0f/128.0f, 1.0f/128.0f);
 
-	/* Scale grid to fill the screen */
-	float grid_col_size = 2.f / GRID_COLS;
-	float grid_row_size = 2.f / GRID_ROWS;
+	/* Few other constant uniforms */
+	glUseProgram(programs[FS_PACK].id());
+	glUniform2f(glGetUniformLocation(programs[FS_PACK].id(), "range"), 256.0f/textures[0].width(), 256.0f/textures[0].height());
+	glUniform2f(glGetUniformLocation(programs[FS_PACK].id(), "from"), (textures[0].width() - 256.0f) / (2.0f * textures[0].width()),
+									  (textures[0].height() - 256.0f) / (2.0f * textures[0].height()));
+	glUniform1i(glGetUniformLocation(programs[FS_PACK].id(), "G"), 1);
+	glUseProgram(programs[FS_DMAPN].id());
+	glUniform1i(glGetUniformLocation(programs[FS_DMAPN].id(), "dmap"), 1);
 
+	k_location = glGetUniformLocation(programs[FS_CONTRAST].id(), "k");
+
+	glBindTexture(GL_TEXTURE_2D, textures[stereo_index].id());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	glHint(GL_GENERATE_MIPMAP_HINT, GL_FASTEST);
+
+#if 0
 	/* Make sure all threads are ready before starting */
 	#if DEBUG
 		printf("Depth() ready!\n");
@@ -271,8 +295,13 @@ void *Depth(void *t)
 		pthread_cond_broadcast(&ready_threads_cv); 
 	}
 	pthread_mutex_unlock(&ready_threads_mutex);
+#else
+	textures[TEX_INLEFT].SetPixels(frame_data_l);
+	textures[TEX_INRIGHT].SetPixels(frame_data_r);
 
+#endif
 	while(run){
+#if 0
 		/* Lock until we have a new frame */
 		pthread_mutex_lock(&frame_mutex);
 		while(!frame){
@@ -285,13 +314,8 @@ void *Depth(void *t)
 			break;
 		}
 
-		#if CAM
-		textures[TEX_LIRAW].SetPixels(frame_data_l);
-		textures[TEX_RIRAW].SetPixels(frame_data_r);
-		#else
-		textures[TEX_LIRAW].SetPixels(frame_data_l);
-		textures[TEX_RIRAW].SetPixels(frame_data_r);
-		#endif
+		textures[TEX_INLEFT].SetPixels(frame_data_l);
+		textures[TEX_INRIGHT].SetPixels(frame_data_r);
 
 		/* Let other threads know this thread is done READING current frame */
 		pthread_mutex_lock(&frame_mutex);
@@ -300,54 +324,100 @@ void *Depth(void *t)
 			printf("\tDepth done...\n");
 		#endif
 		pthread_mutex_unlock(&frame_mutex);
+#endif
+		/* Clear the background */
+		// glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-//		selected_texture = (selected_texture + 1) % (GRID_ROWS * GRID_COLS);
+		/* Capture POT region and pack to a single texture */
+		glUseProgram(programs[FS_PACK].id());
+		glBindFramebuffer(GL_FRAMEBUFFER, textures[stereo_index].framebuffer_id());
+		glViewport(0, 0, textures[stereo_index].width(), textures[stereo_index].height());
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures[left_index].id());
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textures[right_index].id());
+		glActiveTexture(GL_TEXTURE0);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-		BeginFrame();
-			/* First required textures are drawn to frame buffers */
-			if(selected_texture == TEX_GRID || &textures[TEX_LHENC] == tex_grid[selected_texture]){
-				DrawTextureRect(&textures[TEX_LIRAW], -1.f, -1.f, 1.f, 1.f, &textures[TEX_LHENC], SHAD_HENC);
-			}
+		/* Generate the mipmaps */
+		glBindTexture(GL_TEXTURE_2D, textures[stereo_index].id());
+		glGenerateMipmap(GL_TEXTURE_2D);
 
-			if(selected_texture == TEX_GRID || &textures[TEX_LSWIN] == tex_grid[selected_texture]){
-				DrawTextureRect(&textures[TEX_LHENC], -1.f, -1.f, 1.f, 1.f, &textures[TEX_LSWIN], SHAD_SWIN);
-			}
+		/* Lowest resolution pass */
+		glUseProgram(programs[FS_DMAP0].id());
+		glBindFramebuffer(GL_FRAMEBUFFER, textures[smallest_index].framebuffer_id());
+		glViewport(0, 0, textures[smallest_index].width(), textures[smallest_index].height());
+		glBindTexture(GL_TEXTURE_2D, textures[stereo_index].id());
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-			if(selected_texture == TEX_GRID || &textures[TEX_RHENC] == tex_grid[selected_texture]){
-				DrawTextureRect(&textures[TEX_RIRAW], -1.f, -1.f, 1.f, 1.f, &textures[TEX_RHENC], SHAD_HENC);
-			}
+		/* Grow the previous disparity map, calculate new disparities, loop */
+		for(int level = 0; level < 4; level++){
+			/* Grow the previous */
+			int grow_index = smallest_index + level;
+			int grown_index = grow_index + 1;
+			glUseProgram(programs[FS_DINTERPOLATE].id());
+			glUniform2f(programs[FS_DINTERPOLATE].texel_location(), 1.0f/textures[grow_index].width(), 1.0f/textures[grow_index].height());
+			glBindFramebuffer(GL_FRAMEBUFFER, textures[grown_index].framebuffer_id());
+			glViewport(0, 0, textures[grown_index].width(), textures[grown_index].height());
+			glBindTexture(GL_TEXTURE_2D, textures[grow_index].id());
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-			if(selected_texture == TEX_GRID || &textures[TEX_RSWIN] == tex_grid[selected_texture]){
-				DrawTextureRect(&textures[TEX_RHENC], -1.f, -1.f, 1.f, 1.f, &textures[TEX_RSWIN], SHAD_SWIN);
-			}
+			/* Calculate new disparities */
+			glUseProgram(programs[FS_DMAPN].id());
+			glUniform2f(programs[FS_DMAPN].texel_location(), 1.0f/textures[grown_index].width(), 1.0f/textures[grown_index].height());
+			glBindFramebuffer(GL_FRAMEBUFFER, textures[grown_index].framebuffer_id());
+			glViewport(0, 0, textures[grown_index].width(), textures[grown_index].height());
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textures[stereo_index].id());
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, textures[grown_index].id());
+			glActiveTexture(GL_TEXTURE0);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		}
 
-			if(selected_texture == TEX_GRID || &textures[TEX_DMAP] == tex_grid[selected_texture]){
-				DrawDisparityRect(&textures[TEX_LSWIN], &textures[TEX_RSWIN], &textures[TEX_DMAP], 0, -1.f, -1.f, 1.f, 1.f);
-			}
+		/* Increase contrast for visualization */
+		glUseProgram(programs[FS_CONTRAST].id());
+		for(int level = 0; level <= 4; level++){
+			int contrast_index = smallest_index + level;
+			glUniform1f(k_location, 6*(4-level+1));
+			glUniform2f(programs[FS_CONTRAST].texel_location(), 1.0f/textures[contrast_index].width(), 1.0f/textures[contrast_index].height());
+			//runShader(gl, textures[contrast_index], textures[contrast_index]);
+		}
 
-			if(selected_texture == TEX_GRID || &textures[TEX_HDEC] == tex_grid[selected_texture]){
-				DrawTextureRect(&textures[TEX_DMAP], -1.f, -1.f, 1.f, 1.f, &textures[TEX_HDEC], SHAD_HDEC);
-			}
+		/* Filter to remove noise from inaccurate match */
+		glUseProgram(programs[FS_DILATE].id());
+		glBindFramebuffer(GL_FRAMEBUFFER, textures[dmap_index + 1].framebuffer_id());
+		glViewport(0, 0, textures[dmap_index + 1].width(), textures[dmap_index + 1].height());
+		glBindTexture(GL_TEXTURE_2D, textures[dmap_index].id());
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-			/* Generated frame buffers are drawn to screen */
-			GfxTexture* tex;
-			if(selected_texture == TEX_GRID){ /* Draw grid */
-				for(int col = 0; col < GRID_COLS; col++){
-					for(int row = 0; row < GRID_ROWS; row++){
-						tex = tex_grid[col + row * GRID_COLS];
-						float colx = -1.f + col * grid_col_size;
-						float rowy = -1.f + row * grid_row_size;
-						DrawTextureRect(tex, colx, rowy , colx + grid_col_size, rowy + grid_row_size, NULL, SHAD_IRAW);
-					}
-				}
-			}else{ /* Draw single texture */
-				tex = tex_grid[selected_texture];
-				DrawTextureRect(tex, -1.0f, -1.0f, 1.0f, 1.0f, NULL, SHAD_IRAW);
-			}
-		EndFrame();
+		/* Calculate the maximum by row of 8 elements */
+		glUseProgram(programs[FS_ERODE].id());
+		glUniform2f(programs[FS_ERODE].texel_location(), 1.0f/textures[dmap_index + 1].width(), 0.0f);
+		glBindFramebuffer(GL_FRAMEBUFFER, textures[dmap_index + 2].framebuffer_id());
+		glViewport(0, 0, textures[dmap_index + 2].width(), textures[dmap_index + 2].height());
+		glBindTexture(GL_TEXTURE_2D, textures[dmap_index + 1].id());
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		/* Calculate the maximum by column of 8 elements */
+		glUniform2f(programs[FS_ERODE].texel_location(), 0.0f, 1.0f/textures[dmap_index + 2].height());
+		glBindFramebuffer(GL_FRAMEBUFFER, textures[dmap_index + 3].framebuffer_id());
+		glViewport(0, 0, textures[dmap_index + 3].width(), textures[dmap_index + 3].height());
+		glBindTexture(GL_TEXTURE_2D, textures[dmap_index + 2].id());
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		/* Draw output to screen */
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, GScreenWidth, GScreenHeight);
+		glUseProgram(programs[FS_COUNT].id());
+		glBindTexture(GL_TEXTURE_2D, textures[TEX_INLEFT].id());
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		eglSwapBuffers(GDisplay,GSurface);
 	}
-
+#if 0
  pthread_exit(NULL);
+#endif
 }
 
 void *Lane(void *t)

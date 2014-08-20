@@ -654,7 +654,7 @@ void bcm2835_spi_writenb(char* tbuf, uint32_t len)
 // Read bytes are copied over onto the transmit buffer
 void bcm2835_spi_transfern(char* buf, uint32_t len)
 {
-    bcm2835_spi_transfernb(buf, buf, len);
+    bcm2835_spi_transfernb(buf, buf, len, 0);
 }
 
 void bcm2835_spi_chipSelect(uint8_t cs)

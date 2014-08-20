@@ -1,71 +1,47 @@
-#pragma once
-
+#include <vector>
 #include "GLES2/gl2.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+#include "gltexture.h"
+#include "glshader.h"
+#include "glprogram.h"
 
-enum shader_enum_t{
-	SHAD_IRAW,
-	SHAD_HENC,
-	SHAD_SWIN,
-	SHAD_DMAP,
-	SHAD_HDEC,
-	SHAD_VRTX,
-	SHAD_COUNT
+enum VertexShadersT {
+	VS_SIMPLE = 0,
+	VS_CROP,
+	VS_INTERPOLATE,
+	VS_FLIP,
+	VS_LEFT,
+	VS_DIAGS,
+	VS_LINE8,
+	VS_COUNT
 };
 
-void InitGraphics();
-void ReleaseGraphics();
-void BeginFrame();
-void EndFrame();
-
-class GfxShader
-{
-	GLchar* Src;
-	GLuint Id;
-	GLuint GlShaderType;
-public:
-	GfxShader() : Src(NULL), Id(0), GlShaderType(0) {}
-	~GfxShader() { if(Src) delete[] Src; }
-
-	bool LoadVertexShader(const char* filename);
-	bool LoadFragmentShader(const char* filename);
-	GLuint GetId() { return Id; }
+enum FragmentShadersT {
+	FS_SIMPLE = 0,
+	FS_PACK,
+	FS_DMAP0,
+	FS_DINTERPOLATE,
+	FS_DMAPN,
+	FS_CONTRAST,
+	FS_DILATE,
+	FS_ERODE,
+	FS_COUNT
 };
 
-class GfxProgram
-{
-	GfxShader* VertexShader;
-	GfxShader* FragmentShader;
-	GLuint Id;
-public:
-	GfxProgram() {}
-	~GfxProgram() {}
-
-	bool Create(GfxShader* vertex_shader, GfxShader* fragment_shader);
-	GLuint GetId() { return Id; }
+enum TexturesT {
+	TEX_INLEFT = 0,
+	TEX_INRIGHT,
+	TEX_ROI,
+	TEX_DMAPL4,
+	TEX_DMAPL3,
+	TEX_DMAPL2,
+	TEX_DMAPL1,
+	TEX_DMAPL0,
+	TEX_FILTER,
+	TEX_MAXHOR,
+	TEX_MAXVER,
+	TEX_COUNT
 };
 
-class GfxTexture
-{
-	int Width;
-	int Height;
-	GLuint Id;
-	bool IsRGBA;
-	GLuint FramebufferId;
-public:
-	GfxTexture() : Width(0), Height(0), Id(0), FramebufferId(0) {}
-	~GfxTexture() {}
-
-	bool CreateRGBA(int width, int height, const void* data = NULL);
-	bool CreateGreyScale(int width, int height, const void* data = NULL);
-	bool GenerateFrameBuffer();
-	void SetPixels(const void* data);
-	GLuint GetId() { return Id; }
-	GLuint GetFramebufferId() { return FramebufferId; }
-	int GetWidth() {return Width;}
-	int GetHeight() {return Height;}
-};
-
-void DrawTextureRect(GfxTexture* texture, float x0, float y0, float x1, float y1, GfxTexture* render_target, shader_enum_t prog_id);
-void DrawDisparityRect(GfxTexture* tex_left, GfxTexture* tex_right, GfxTexture* tex_dispmap, int d, float x0, float y0, float x1, float y1);
+void InitGraphics(std::vector<GLTexture> &textures, std::vector<GLShader> &shaders, std::vector<GLProgram> &programs);
