@@ -4,8 +4,8 @@
  #define IMG_W 176
  #define IMG_H 144
 #else
- #define IMG_W 320
- #define IMG_H 240
+ #define IMG_W 384
+ #define IMG_H 288
 #endif
 
 #define IMG_SIZE IMG_W*IMG_H
@@ -29,5 +29,6 @@ enum arguments_t {
 	ARG_TRAN_DELAY_L,
 	ARG_TRAN_DELAY_R,
 	ARG_FRAME_DELAY,
+	ARG_DRAWN_TEX,
 	ARG_COUNT
 };

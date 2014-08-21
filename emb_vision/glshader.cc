@@ -50,10 +50,8 @@ GLShader::GLShader(const char* name, GLuint type)
 	GLint compiled;
 	glGetShaderiv(id_, GL_COMPILE_STATUS, &compiled);
 	if(compiled==0){
-		#if DEBUG_SHADERS
-			std::cout << "Failed to compile shader " << filename << std::endl;
-			printShaderInfoLog(id_);
-		#endif
+		std::cout << "Failed to compile shader " << filename << std::endl;
+		printShaderInfoLog(id_);
 		glDeleteShader(id_);
 	}else{
 		#if DEBUG_SHADERS

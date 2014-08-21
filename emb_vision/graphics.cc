@@ -102,8 +102,8 @@ void InitGraphics(std::vector<GLTexture> &textures, std::vector<GLShader> &shade
 	assert(EGL_FALSE != result);
 
 	/* Set background color and clear buffers */
-	glClearColor(0.15f, 0.25f, 0.35f, 1.0f);
-	glClear( GL_COLOR_BUFFER_BIT );
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	textures.push_back(GLTexture(IMG_W, IMG_H, GL_LUMINANCE));
 	textures.push_back(GLTexture(IMG_W, IMG_H, GL_LUMINANCE));
@@ -159,5 +159,4 @@ void InitGraphics(std::vector<GLTexture> &textures, std::vector<GLShader> &shade
 	glGenBuffers(1, &GQuadVertexBuffer);	
 	glBindBuffer(GL_ARRAY_BUFFER, GQuadVertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertex_positions), quad_vertex_positions, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

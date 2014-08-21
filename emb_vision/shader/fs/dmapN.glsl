@@ -17,8 +17,7 @@ void main(void)
 				texture2D(stereo, tc - vec2((d + 1.0) * texelsize.x, 0.0)).g);
 
 	mediump vec3 sim = ceil(abs(matching - candidates) * 150.0);
-	sim.g += 0.0039;
-	sim.b += 0.0078;
+	sim.gb += vec2(0.0039, 0.0078);
 
 	gl_FragColor = vec4(dfloat + fract(min(min(sim.r, sim.g), sim.b)) - 0.0039, 0.0, 0.0, 1.0);
 }
