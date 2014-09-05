@@ -14,10 +14,11 @@
 #if CAM
  #include "ov7670.h"
  /* Memory to store the frames */
- uint8_t frame_data_l[IMG_SIZE];
- uint8_t frame_data_r[IMG_SIZE];
+ uint8_t left_frame_data[IMG_SIZE];
+ uint8_t right_frame_data[IMG_SIZE];
 #else
- #include "img.h"
+ #include "left_frame_data.h"
+ #include "right_frame_data.h"
 #endif
 
 extern uint32_t GScreenWidth;
@@ -28,11 +29,11 @@ extern EGLContext GContext;
 
 /* Prototypes */
 void *Capture(void *t);
-void Depth(void *t);
+void *Depth(void *t);
 void *Lane(void *t);
 
 /* Pointer to array of pointers to functions */
-//void *(*f_thread[3])(void *t) = {Capture, Depth, Lane};
+void *(*f_thread[3])(void *t) = {Capture, Depth, Lane};
 
 /* Synchronization variables */
 uint8_t ready_threads = 0;
@@ -103,7 +104,7 @@ int main(int argc, char **argv)
 	if(!arguments[ARG_SPI_DIV_R]){
 		arguments[ARG_SPI_DIV_R] = arguments[ARG_SPI_DIV_L];
 	}
-#if 0
+
 	/* Initialize attribute and set thread detach state to joinable */
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -171,9 +172,7 @@ int main(int argc, char **argv)
 	#if DEBUG
 		printf("All threads completed. Exiting.\n");
 	#endif
-#endif
 
-	Depth((void *)arguments);
  return 0;
 }
 
@@ -213,7 +212,7 @@ void *Capture(void *t)
 		}
 
 		#if CAM
-		OV_ReadFrames(frame_data_l, frame_data_r, args);
+		OV_ReadFrames(left_frame_data, right_frame_data, args);
 		#endif
 
 		/* Let processing threads know a frame is ready */
@@ -239,7 +238,7 @@ void *Capture(void *t)
  pthread_exit(NULL);
 }
 
-void Depth(void *t)
+void *Depth(void *t)
 {
 	std::vector<GLTexture> textures;
 	std::vector<GLShader> shaders;
@@ -283,7 +282,6 @@ void Depth(void *t)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 	glHint(GL_GENERATE_MIPMAP_HINT, GL_FASTEST);
 
-#if 0
 	/* Make sure all threads are ready before starting */
 	#if DEBUG
 		printf("Depth() ready!\n");
@@ -297,18 +295,24 @@ void Depth(void *t)
 		pthread_cond_broadcast(&ready_threads_cv); 
 	}
 	pthread_mutex_unlock(&ready_threads_mutex);
-#else
-	textures[TEX_LEFT].SetPixels(frame_data_l);
-	textures[TEX_RIGHT].SetPixels(frame_data_r);
-#endif
+
 	/* Print information of interest */
 	int gl_val;
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_val);
 	std::cout << "MAX_TEXTURE_IMAGE_UNITS: " << gl_val << std::endl;
 	glGetIntegerv(GL_MAX_VARYING_VECTORS, &gl_val);
 	std::cout << "MAX_VARYING_VECTORS: " << gl_val << std::endl;
+
+	/* Read start time */
+	long int start_time;
+	long int time_difference;
+	struct timespec gettime_now;
+	clock_gettime(CLOCK_REALTIME, &gettime_now);
+	start_time = gettime_now.tv_nsec ;
+	double total_time_s = 0;
+	int cnt = 0;
+
 	while(run){
-#if 0
 		/* Lock until we have a new frame */
 		pthread_mutex_lock(&frame_mutex);
 		while(!frame){
@@ -321,8 +325,8 @@ void Depth(void *t)
 			break;
 		}
 
-		textures[TEX_LEFT].SetPixels(frame_data_l);
-		textures[TEX_RIGHT].SetPixels(frame_data_r);
+		textures[TEX_LEFT].SetPixels(left_frame_data);
+		textures[TEX_RIGHT].SetPixels(right_frame_data);
 
 		/* Let other threads know this thread is done READING current frame */
 		pthread_mutex_lock(&frame_mutex);
@@ -331,9 +335,6 @@ void Depth(void *t)
 			printf("\tDepth done...\n");
 		#endif
 		pthread_mutex_unlock(&frame_mutex);
-#endif
-		/* Clear the background */
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 		/* Capture POT region and pack to a single texture */
 		glUseProgram(programs[FS_PACK].id());
@@ -421,15 +422,27 @@ void Depth(void *t)
 		/* Draw output to screen */
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, GScreenWidth, GScreenHeight);
-		glUseProgram(programs[FS_SIMPLE].id());
+		glUseProgram(programs[FS_COUNT].id());
 		glBindTexture(GL_TEXTURE_2D, textures[((uint32_t *)t)[ARG_DRAWN_TEX]].id());
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		eglSwapBuffers(GDisplay, GSurface);
+
+		/* Read current time */
+		clock_gettime(CLOCK_REALTIME, &gettime_now);
+		time_difference = gettime_now.tv_nsec - start_time;
+		if(time_difference < 0) time_difference += 1000000000;
+		total_time_s += double(time_difference)/1000000000.0;
+		start_time = gettime_now.tv_nsec;
+
+		/* Print frame rate */
+		float fr = float(double(cnt + 1) / total_time_s);
+		if((cnt++ % 30) == 0){
+			std::cout << fr << std::endl;
+		}
 	}
-#if 0
+
  pthread_exit(NULL);
-#endif
 }
 
 void *Lane(void *t)

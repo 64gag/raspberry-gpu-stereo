@@ -17,9 +17,9 @@
 #define SPI_GRAYONLY 0
 
 enum thread_enum_t {
+	THREAD_CAPTURE,
 	THREAD_DEPTH,
 	THREAD_COUNT,
-	THREAD_CAPTURE,
 	THREAD_LANE
 };
 
