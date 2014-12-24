@@ -13,7 +13,7 @@
 	var d_times = <?php if(isset($_GET["dt"])){ echo $_GET["dt"]; }else{ echo "2"; }; ?>;
 
 </script>
-<script type="text/javascript" src="method<?php if(isset($_GET["m"])){ echo $_GET["m"]; }else{ echo "2"; }; ?>.js"></script>
+<script type="text/javascript" src="hierarchical.js"></script>
 <script type="text/javascript" src="lib.js" /></script>
 </head>
 

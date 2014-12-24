@@ -50,32 +50,6 @@ function setVariables(gl, proggy, listVariables){
 	}
 }
 
-function runShader(gl, texture, target)
-{
-	gl.bindFramebuffer(gl.FRAMEBUFFER, target);
-	gl.viewport (0, 0, target.width, target.height);
-
-	gl.bindTexture(gl.TEXTURE_2D, texture);
-
-	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-}
-
-function runShaderDisparity(gl, tex_left, tex_right, tex_dmap, target)
-{
-	gl.bindFramebuffer(gl.FRAMEBUFFER, target);
-	gl.viewport (0, 0, target.width, target.height);
-
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, tex_left);
-	gl.activeTexture(gl.TEXTURE1);
-	gl.bindTexture(gl.TEXTURE_2D, tex_right);
-	gl.activeTexture(gl.TEXTURE2);
-	gl.bindTexture(gl.TEXTURE_2D, tex_dmap);
-	gl.activeTexture(gl.TEXTURE0);
-
-	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-}
-
 function setupWebGL(image_left, image_right)
 {
 	/* Set up the "screen" canvas */
@@ -178,7 +152,7 @@ function renderGrid(){
 		for(var col = cols - 1; col >= 0; col--){
 			var colx = -1.0 + col * grid_col_size;
 			var rowy = -1.0 + row * grid_row_size;
-			var gridValues = [{LVALUE: "offset", VALUE: [colx, rowy]}, {LVALUE: "scale", VALUE: [grid_col_size, grid_row_size]}];
+			var gridValues = [{LVALUE: "offset", VALUE: [colx + col * 0.005, rowy]}, {LVALUE: "scale", VALUE: [grid_col_size, grid_row_size]}];
 			setVariables(gl, programs[_FS.FLIP], gridValues)
 			gl.bindTexture(gl.TEXTURE_2D, textures[dtex[tex--]]);
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

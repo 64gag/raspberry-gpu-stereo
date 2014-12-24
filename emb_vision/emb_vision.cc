@@ -300,6 +300,8 @@ void *Depth(void *t)
 	int gl_val;
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &gl_val);
 	std::cout << "MAX_TEXTURE_IMAGE_UNITS: " << gl_val << std::endl;
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &gl_val);
+	std::cout << "MAX_COMBINED_TEXTURE_IMAGE_UNITS: " << gl_val << std::endl;
 	glGetIntegerv(GL_MAX_VARYING_VECTORS, &gl_val);
 	std::cout << "MAX_VARYING_VECTORS: " << gl_val << std::endl;
 
@@ -335,6 +337,8 @@ void *Depth(void *t)
 			printf("\tDepth done...\n");
 		#endif
 		pthread_mutex_unlock(&frame_mutex);
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		/* Capture POT region and pack to a single texture */
 		glUseProgram(programs[FS_PACK].id());
